@@ -1,3 +1,2 @@
 # Stacked nearest neighbor python
-Pure python implementation of stacked nearest neighbor network.  This is a feed forward learning scheme, no back propagation necessary, but it similar to stacked generalization methods.  Also, since it's based on nearest neighbor it
-is a one shot learning method.
+Pure python implementation of stacked nearest neighbor network.  This is a feed forward learning scheme, no back propagation necessary, but it similar to stacked generalization methods.  Also, since it's based on nearest neighbor it is a one shot learning method.  Now I just need a theory for why this should work, or how to make it work.  Right now it is worse than just computing the nearest neighbor.
