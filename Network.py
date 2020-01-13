@@ -27,8 +27,11 @@ class Network :
             out = tLayer.evaluateList(out, self.metric)
         
         return out
-
-    #softmax, but I think it should just be an average
+    
+    '''
+    Compute the "probability" of each class.  Right now it assumes
+    the values are always positive as outputs of each layer
+    '''
     def probability(self, values, layerIndex=-1, reverse=False) :
         
         ans = self.evaluateList(values)
@@ -37,15 +40,15 @@ class Network :
         argmax = []
 
         for i in ans :
-            softmax = i/np.sum(i)
+            normalized = i/np.sum(i)
             if reverse :
-                softmax = 1.0-softmax
+                normalized = 1.0-normalized
 
-            result.append(softmax)
+            result.append(normalized)
 
         return result
 
-    #class with the largest value
+    #Return the most likely class
     def bestClass(self, values, layerIndex=-1, reverse=False) :
         ans = self.probability(values, layerIndex=layerIndex, reverse=reverse)
         argmax = []
