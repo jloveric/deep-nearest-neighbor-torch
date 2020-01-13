@@ -17,7 +17,6 @@ class Network :
     def evaluate(self, value) :
         out = value
         for tLayer in self.layer :
-
             out = tLayer.evaluate(out, self.metric)
         
         return out
@@ -29,10 +28,30 @@ class Network :
         
         return out
 
-    def bestClass(self, values, layerIndex=-1) :
+    #softmax, but I think it should just be an average
+    def probability(self, values, layerIndex=-1, reverse=False) :
+        
         ans = self.evaluateList(values)
+        result = []
+        lastLayer = self.layer[layerIndex]
+        argmax = []
+
+        for i in ans :
+            softmax = i/np.sum(i)
+            if reverse :
+                softmax = 1.0-softmax
+
+            result.append(softmax)
+
+        return result
+
+    #class with the largest value
+    def bestClass(self, values, layerIndex=-1, reverse=False) :
+        ans = self.probability(values, layerIndex=layerIndex, reverse=reverse)
         argmax = []
         lastLayer = self.layer[layerIndex]
 
         for i in ans :
             argmax.append(lastLayer.classes[np.argmax(i)])
+
+        return argmax

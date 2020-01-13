@@ -27,7 +27,7 @@ class Layer :
         for y in value :
             result = []
             for x in self.data :
-                a = metric(x, value)
+                a = metric(x, y)
                 result.append(a)
             final.append(np.array(result))
         

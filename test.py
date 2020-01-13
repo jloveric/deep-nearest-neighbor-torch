@@ -2,6 +2,7 @@ import unittest
 import numpy as np
 from Layer import Layer
 from Metric import euclideanMetric
+from Metric import radialMetric
 from Network import Network
 
 class TestLayer(unittest.TestCase) :
@@ -29,11 +30,23 @@ class TestLayer(unittest.TestCase) :
     def test_network(self) :
 
         network = Network(metric=euclideanMetric)
-        network.constructNextLayer([[1,2,3],[4,5,6]])
-        network.constructNextLayer([[-1,-2,-3],[2,3,4]])
-        network.constructNextLayer([[5,7,8],[0,10,11],[1,2,3]],['c1','c2','c3'])
 
-        network.bestClass([1,2,3])
+        inList = [[1,2,3],[4,5,6]]
+        network.constructNextLayer([[1,2,3],[4,5,6]])
+        network.constructNextLayer([[1,2,3],[4,5,6]])
+        network.constructNextLayer([[1,2,3],[4,5,6]],['c1','c2','c3'])
+
+        evalList = [[1,2,3],[4,5,6]]
+        res = network.evaluateList(evalList)
+        print('res', res)
+
+        ans = network.probability(evalList, reverse=True)
+        print('ans', ans)
+        ans = network.bestClass(evalList, reverse=True)
+        print('ans', ans)
+        self.assertEqual(ans[0],'c1')
+        self.assertEqual(ans[1],'c2')
+
 
 
 if __name__ == '__main__':
