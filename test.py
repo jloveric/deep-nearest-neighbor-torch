@@ -47,6 +47,17 @@ class TestLayer(unittest.TestCase) :
         self.assertEqual(ans[0],'c1')
         self.assertEqual(ans[1],'c2')
 
+    def test_classes(self) :
+        network = Network(metric=euclideanMetric)
+
+        inList = [[1,2,3],[4,5,6]]
+        network.constructNextLayer(np.array([[1,2,3],[4,5,6],[7,8,9]]),['c1','c2','c3'])
+        network.constructNextLayer(np.array([[1,2,3],[4,5,6]]),['c1','c2'])
+        network.constructNextLayer(np.array([[1,2,3],[4,5,6]]),['c1','c2'])
+
+        for i in range(0,3) :
+            ans = network.bestClass(inList, reverse=True, layerIndex=i)
+            print('best class', ans)
 
 
 if __name__ == '__main__':

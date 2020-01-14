@@ -14,17 +14,28 @@ class Network :
         layer.addExamples(output, classes)
         self.layer.append(layer)
 
-    def evaluate(self, value) :
+    def evaluate(self, value, layerIndex=-1) :
         out = value
-        for tLayer in self.layer :
+
+        final = len(self.layer)
+        if(layerIndex!=-1) :
+            final = layerIndex+1
+
+        for i in range(0,final) :
+            tLayer = self.layer[i]
             out = tLayer.evaluate(out, self.metric)
         
         return out
 
-    def evaluateList(self, values) :
+    def evaluateList(self, values, layerIndex=-1) :
         out = values
-        for tLayer in self.layer :
-            out = tLayer.evaluateList(out, self.metric)
+        
+        final = len(self.layer)
+        if(layerIndex!=-1) :
+            final = layerIndex+1
+
+        for i in range(0, final) :
+            out = self.layer[i].evaluateList(out, self.metric)
         
         return out
     
@@ -33,13 +44,13 @@ class Network :
     the values are always positive as outputs of each layer
     '''
     def probability(self, values, layerIndex=-1, reverse=False) :
-        
-        ans = self.evaluateList(values)
+        #print('values.shape', values.shape)
+        ans = self.evaluateList(values, layerIndex=layerIndex)
         result = []
-        lastLayer = self.layer[layerIndex]
         argmax = []
 
         for i in ans :
+            #print('i.shape', i.shape)
             normalized = i/np.sum(i)
             if reverse :
                 normalized = 1.0-normalized
@@ -50,11 +61,15 @@ class Network :
 
     #Return the most likely class
     def bestClass(self, values, layerIndex=-1, reverse=False) :
+        
         ans = self.probability(values, layerIndex=layerIndex, reverse=reverse)
         argmax = []
+        #print('layerIndex', layerIndex,'len layer', len(self.layer))
         lastLayer = self.layer[layerIndex]
 
         for i in ans :
+            #print('lastLayer.classes', lastLayer.classes, len(lastLayer.classes), len(ans),i.shape)
+            #print('argmax', np.argmax(i))
             argmax.append(lastLayer.classes[np.argmax(i)])
 
         return argmax
