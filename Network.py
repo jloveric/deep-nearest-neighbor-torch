@@ -44,13 +44,13 @@ class Network :
     the values are always positive as outputs of each layer
     '''
     def probability(self, values, layerIndex=-1, reverse=False) :
-        #print('values.shape', values.shape)
+        
         ans = self.evaluateList(values, layerIndex=layerIndex)
         result = []
         argmax = []
 
         for i in ans :
-            #print('i.shape', i.shape)
+            
             normalized = i/np.sum(i)
             if reverse :
                 normalized = 1.0-normalized
@@ -64,12 +64,10 @@ class Network :
         
         ans = self.probability(values, layerIndex=layerIndex, reverse=reverse)
         argmax = []
-        #print('layerIndex', layerIndex,'len layer', len(self.layer))
+        
         lastLayer = self.layer[layerIndex]
 
         for i in ans :
-            #print('lastLayer.classes', lastLayer.classes, len(lastLayer.classes), len(ans),i.shape)
-            #print('argmax', np.argmax(i))
             argmax.append(lastLayer.classes[np.argmax(i)])
 
         return argmax
