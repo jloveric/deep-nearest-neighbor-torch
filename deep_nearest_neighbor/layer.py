@@ -1,9 +1,16 @@
 import torch
 
 
-def layer(keys: torch.Tensor, values: torch.Tensor, metric=lambda x,y : torch.dot(x,y)):
+def layer(keys: torch.Tensor, values: torch.Tensor):
+    
+    distances = []
+    for value in values :
+        delta = keys-value
+        dist = torch.linalg.norm(delta,dim=1)
+        distances.append(dist)
 
-    dist = metric(keys, values)
-    return dist            
+
+    res = torch.stack(distances)
+    return res
 
 
