@@ -14,3 +14,10 @@ def layer(keys: torch.Tensor, values: torch.Tensor):
     return res
 
 
+def new_keys(distances, categories) :
+    predictions = torch.argmin(distances,dim=1)
+    print('predictions', predictions.shape, categories.shape)
+    res = (predictions==categories)
+
+    
+    print('res', res)
