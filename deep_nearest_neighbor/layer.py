@@ -14,10 +14,12 @@ def layer(keys: torch.Tensor, values: torch.Tensor):
     return res
 
 
-def new_keys(distances, categories) :
-    predictions = torch.argmin(distances,dim=1)
-    print('predictions', predictions.shape, categories.shape)
-    res = (predictions==categories)
+def new_keys(distances, target_classification, sample_classification ) :
+    nearest_neighbor = torch.argmin(distances,dim=1)
+    predicted_classification = target_classification[nearest_neighbor]
+
+    print('predictions', predicted_classification)
+    res = (predicted_classification==sample_classification)
 
     
     print('res', res)
