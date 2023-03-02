@@ -46,3 +46,35 @@ def extend_neighbors(
     ext_keys = torch.cat([keys, new_keys], dim=0)
     ext_class = torch.cat([key_class, new_class], dim=0)
     return ext_keys, ext_class
+
+
+def train_loop(
+    neighbors, neighbor_class, samples, sample_class, target_accuracy: float = 0.9
+):
+    result = 0
+
+    while result < target_accuracy:
+        distances = layer(keys=neighbors, values=samples)
+
+        wrong_indices = incorrect_predictions(
+            distances=distances,
+            target_classification=neighbor_class,
+            sample_classification=sample_class,
+        )
+
+        new_keys = samples[wrong_indices]
+        new_class = sample_class[wrong_indices]
+
+        neighbors, neighbor_class = extend_neighbors(
+            neighbors, neighbor_class, new_keys, new_class
+        )
+
+        final_distances = layer(keys=neighbors, values=samples)
+        final_predictions = predict(
+            distances=final_distances, target_classification=neighbor_class
+        )
+
+        how_good = final_predictions == sample_class
+        result = torch.sum(how_good) / how_good.shape[0]
+
+    return neighbors, neighbor_class

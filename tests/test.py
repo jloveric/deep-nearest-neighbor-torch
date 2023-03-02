@@ -3,6 +3,7 @@ from deep_nearest_neighbor.layer import (
     incorrect_predictions,
     extend_neighbors,
     predict,
+    train_loop
 )
 import torch
 
@@ -41,3 +42,17 @@ def test_layer():
 
     result = final_predictions == value_classification
     print('result', torch.sum(result)/result.shape[0])
+
+
+def test_train_loop():
+    keys = torch.rand(5, 10)
+    print("keys.shape", keys.shape)
+
+    key_classification = torch.randint(low=0, high=2, size=(keys.shape[0],))
+
+    values = torch.rand(20, 10)
+    value_classification = torch.randint(low=0, high=2, size=(values.shape[0],))
+
+    resn, resn_class = train_loop(neighbors=keys, neighbor_class=key_classification, samples=values, sample_class=value_classification)
+
+    print('resn.shape', resn.shape)
