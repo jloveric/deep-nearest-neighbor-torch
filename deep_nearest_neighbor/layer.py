@@ -12,6 +12,12 @@ def layer(keys: torch.Tensor, values: torch.Tensor) -> torch.Tensor:
     return res
 
 
+def predict(distances, target_classification):
+    nearest_neighbor = torch.argmin(distances, dim=1)
+    predicted_classification = target_classification[nearest_neighbor]
+    return predicted_classification
+
+
 def incorrect_predictions(
     distances, target_classification, sample_classification
 ) -> torch.Tensor:
@@ -31,6 +37,12 @@ def incorrect_predictions(
     return wrong_indices
 
 
-def extend_keys(keys: torch.Tensor, new_keys: torch.Tensor) -> torch.Tensor:
-    keys = torch.cat([keys, new_keys],dim=0)
-    return keys
+def extend_neighbors(
+    keys: torch.Tensor,
+    key_class: torch.Tensor,
+    new_keys: torch.Tensor,
+    new_class: torch.Tensor,
+) -> torch.Tensor:
+    ext_keys = torch.cat([keys, new_keys], dim=0)
+    ext_class = torch.cat([key_class, new_class], dim=0)
+    return ext_keys, ext_class
