@@ -1,4 +1,5 @@
 import torch
+from torch.utils.data import DataLoader
 
 
 def layer(keys: torch.Tensor, values: torch.Tensor) -> torch.Tensor:
@@ -78,3 +79,20 @@ def train_loop(
         result = torch.sum(how_good) / how_good.shape[0]
 
     return neighbors, neighbor_class
+
+
+def ecoch_loop(dataloader: DataLoader, target_accuracy=0.9):
+    data_iter = iter(dataloader)
+
+    neighbors, neighbor_class = next(data_iter)
+
+    for data in data_iter:
+        x, y = data
+        
+        neighbors, neighbor_class = train_loop(
+            neighbors=neighbors,
+            neighbor_class=neighbor_class,
+            sample=x,
+            sample_class=y,
+            target_accuracy=target_accuracy,
+        )
