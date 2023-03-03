@@ -81,14 +81,16 @@ def train_loop(
     return neighbors, neighbor_class
 
 
-def ecoch_loop(dataloader: DataLoader, target_accuracy=0.9):
+def epoch_loop(dataloader: DataLoader, target_accuracy=0.9):
+    print('inside epoch_loop')
     data_iter = iter(dataloader)
 
     neighbors, neighbor_class = next(data_iter)
 
     for data in data_iter:
+        print('data', data)
         x, y = data
-        
+
         neighbors, neighbor_class = train_loop(
             neighbors=neighbors,
             neighbor_class=neighbor_class,
