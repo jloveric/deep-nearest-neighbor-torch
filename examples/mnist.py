@@ -41,8 +41,11 @@ test_dataloader = DataLoader(
 
 @hydra.main(config_path="../config", config_name="mnist", version_base="1.3")
 def run(cfg: DictConfig):
-    print("inside here", flush=True)
-    epoch_loop(dataloader=train_dataloader, target_accuracy=cfg.target_accuracy)
+    neighbors, neighbor_class = epoch_loop(
+        dataloader=train_dataloader, target_accuracy=cfg.target_accuracy
+    )
+    torch.save(neighbors, "neighbors.pt")
+    torch.save(neighbor_class, "neighbor_classes.pt")
 
 
 if __name__ == "__main__":

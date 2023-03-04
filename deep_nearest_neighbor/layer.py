@@ -2,6 +2,7 @@ import torch
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 
+
 def layer(keys: torch.Tensor, values: torch.Tensor) -> torch.Tensor:
     distances = []
     for value in values:
@@ -34,8 +35,8 @@ def incorrect_predictions(
 
     all = predicted_classification == sample_classification
     wrong_indices = torch.logical_not(all).nonzero().squeeze()
-    if wrong_indices.numel() == 1 :
-        wrong_indices=wrong_indices.unsqueeze(dim=0)
+    if wrong_indices.numel() == 1:
+        wrong_indices = wrong_indices.unsqueeze(dim=0)
 
     return wrong_indices
 
@@ -46,7 +47,7 @@ def extend_neighbors(
     new_keys: torch.Tensor,
     new_class: torch.Tensor,
 ) -> torch.Tensor:
-    print('keys.shape', keys.shape, 'new_keys.shape',new_keys.shape)
+    print("keys.shape", keys.shape, "new_keys.shape", new_keys.shape)
     ext_keys = torch.cat([keys, new_keys], dim=0)
     ext_class = torch.cat([key_class, new_class], dim=0)
     return ext_keys, ext_class
@@ -66,10 +67,10 @@ def train_loop(
             sample_classification=sample_class,
         )
 
-        if wrong_indices.numel() > 0 :
+        if wrong_indices.numel() > 0:
             new_keys = samples[wrong_indices]
             new_class = sample_class[wrong_indices]
-            
+
             neighbors, neighbor_class = extend_neighbors(
                 neighbors, neighbor_class, new_keys, new_class
             )
@@ -83,6 +84,27 @@ def train_loop(
         result = torch.sum(how_good) / how_good.shape[0]
 
     return neighbors, neighbor_class
+
+
+def test_wrong(
+    neighbors: torch.Tensor,
+    neighbor_class: torch.Tensor,
+    samples: torch.Tensor,
+    sample_class: torch.Tensor,
+) -> int:
+    """
+    Return the number of elements that are wrong in samples
+    """
+
+    distances = layer(keys=neighbors, values=samples)
+
+    wrong_indices = incorrect_predictions(
+        distances=distances,
+        target_classification=neighbor_class,
+        sample_classification=sample_class,
+    )
+
+    return wrong_indices.numel()
 
 
 def epoch_loop(dataloader: DataLoader, target_accuracy=0.9):
@@ -100,3 +122,5 @@ def epoch_loop(dataloader: DataLoader, target_accuracy=0.9):
             sample_class=y,
             target_accuracy=target_accuracy,
         )
+
+    return neighbors, neighbor_class
