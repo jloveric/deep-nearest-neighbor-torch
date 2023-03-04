@@ -1,2 +1,2 @@
-# Stacked nearest neighbor python
-Pure python implementation of stacked nearest neighbor network.  This looks similar to a radial basis function network.  This is a feed forward learning scheme, no back propagation necessary, but it's similar to stacked generalization methods.  Also, since it's based on nearest neighbor it is a one shot learning method.  Now I just need a theory for why this should work, or how to make it work.  Right now it is worse than just computing the nearest neighbor with the full set, however, mathematically you should be able to make it identical to a deep neural network - so getting it to that type of performance should be possible.
+# Dynamic and Deep Nearest Neighbors in Pytorch
+

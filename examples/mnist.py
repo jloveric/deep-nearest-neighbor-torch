@@ -8,14 +8,15 @@ from omegaconf import DictConfig, OmegaConf
 import hydra
 from deep_nearest_neighbor.layer import train_loop, epoch_loop
 
-class TransformFlat :
 
-    def __init__(self) :
+class TransformFlat:
+    def __init__(self):
         self.to_tensor = ToTensor()
-    
-    def __call__(self, input_data) :
+
+    def __call__(self, input_data):
         data = self.to_tensor(input_data).flatten()
         return data
+
 
 training_data = datasets.MNIST(
     root="data", train=True, download=True, transform=TransformFlat()
@@ -26,19 +27,15 @@ test_data = datasets.MNIST(
 )
 
 
-def collate_fn(batch):
-    return batch
-    print('batch', len(batch))
-    print('batch[]',batch[0])
-    x, y = batch
-    return x.resize(x.shape[0], -1), y
-
-
 train_dataloader = DataLoader(
-    training_data, batch_size=64, shuffle=True,
+    training_data,
+    batch_size=64,
+    shuffle=True,
 )
 test_dataloader = DataLoader(
-    test_data, batch_size=64, shuffle=True,
+    test_data,
+    batch_size=64,
+    shuffle=True,
 )
 
 

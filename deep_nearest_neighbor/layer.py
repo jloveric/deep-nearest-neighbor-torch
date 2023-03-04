@@ -1,6 +1,6 @@
 import torch
 from torch.utils.data import DataLoader
-
+from tqdm import tqdm
 
 def layer(keys: torch.Tensor, values: torch.Tensor) -> torch.Tensor:
     distances = []
@@ -34,6 +34,8 @@ def incorrect_predictions(
 
     all = predicted_classification == sample_classification
     wrong_indices = torch.logical_not(all).nonzero().squeeze()
+    if wrong_indices.numel() == 1 :
+        wrong_indices=wrong_indices.unsqueeze(dim=0)
 
     return wrong_indices
 
@@ -44,6 +46,7 @@ def extend_neighbors(
     new_keys: torch.Tensor,
     new_class: torch.Tensor,
 ) -> torch.Tensor:
+    print('keys.shape', keys.shape, 'new_keys.shape',new_keys.shape)
     ext_keys = torch.cat([keys, new_keys], dim=0)
     ext_class = torch.cat([key_class, new_class], dim=0)
     return ext_keys, ext_class
@@ -63,12 +66,13 @@ def train_loop(
             sample_classification=sample_class,
         )
 
-        new_keys = samples[wrong_indices]
-        new_class = sample_class[wrong_indices]
-
-        neighbors, neighbor_class = extend_neighbors(
-            neighbors, neighbor_class, new_keys, new_class
-        )
+        if wrong_indices.numel() > 0 :
+            new_keys = samples[wrong_indices]
+            new_class = sample_class[wrong_indices]
+            
+            neighbors, neighbor_class = extend_neighbors(
+                neighbors, neighbor_class, new_keys, new_class
+            )
 
         final_distances = layer(keys=neighbors, values=samples)
         final_predictions = predict(
@@ -82,15 +86,12 @@ def train_loop(
 
 
 def epoch_loop(dataloader: DataLoader, target_accuracy=0.9):
-    print('inside epoch_loop')
     data_iter = iter(dataloader)
 
     neighbors, neighbor_class = next(data_iter)
 
-    for data in data_iter:
-        print('data', data)
+    for data in tqdm(data_iter):
         x, y = data
-        print('x.shape', x.shape)
 
         neighbors, neighbor_class = train_loop(
             neighbors=neighbors,
