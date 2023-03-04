@@ -107,6 +107,18 @@ def test_wrong(
     return wrong_indices.numel()
 
 
+def test_loop(neighbors, neighbor_class, dataloader: DataLoader):
+    wrong = 0
+    for data in tqdm(iter(dataloader)):
+        x, y = data
+        wrong += test_wrong(
+            neighbors=neighbors,
+            neighbor_class=neighbor_class,
+            samples=x,
+            sample_class=y,
+        )
+
+
 def epoch_loop(dataloader: DataLoader, target_accuracy=0.9):
     data_iter = iter(dataloader)
 

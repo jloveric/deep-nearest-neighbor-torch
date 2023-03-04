@@ -3,7 +3,7 @@ from deep_nearest_neighbor.layer import (
     incorrect_predictions,
     extend_neighbors,
     predict,
-    train_loop
+    train_loop,
 )
 import torch
 
@@ -38,10 +38,12 @@ def test_layer():
     assert keys.shape[0] >= 5
 
     final_distances = layer(keys=keys, values=values)
-    final_predictions = predict(distances=final_distances, target_classification=key_class)
+    final_predictions = predict(
+        distances=final_distances, target_classification=key_class
+    )
 
     result = final_predictions == value_classification
-    print('result', torch.sum(result)/result.shape[0])
+    print("result", torch.sum(result) / result.shape[0])
 
 
 def test_train_loop():
@@ -53,6 +55,11 @@ def test_train_loop():
     values = torch.rand(20, 10)
     value_classification = torch.randint(low=0, high=2, size=(values.shape[0],))
 
-    resn, resn_class = train_loop(neighbors=keys, neighbor_class=key_classification, samples=values, sample_class=value_classification)
+    resn, resn_class = train_loop(
+        neighbors=keys,
+        neighbor_class=key_classification,
+        samples=values,
+        sample_class=value_classification,
+    )
 
-    print('resn.shape', resn.shape)
+    print("resn.shape", resn.shape)
