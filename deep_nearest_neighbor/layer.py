@@ -90,11 +90,12 @@ def epoch_loop(dataloader: DataLoader, target_accuracy=0.9):
     for data in data_iter:
         print('data', data)
         x, y = data
+        print('x.shape', x.shape)
 
         neighbors, neighbor_class = train_loop(
             neighbors=neighbors,
             neighbor_class=neighbor_class,
-            sample=x,
+            samples=x,
             sample_class=y,
             target_accuracy=target_accuracy,
         )
