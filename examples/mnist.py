@@ -20,11 +20,11 @@ train_dataloader = DataLoader(training_data, batch_size=64, shuffle=True)
 test_dataloader = DataLoader(test_data, batch_size=64, shuffle=True)
 
 
-@hydra.main(config_path="config", config_name="mnist", version_base="1.3")
+@hydra.main(config_path="../config", config_name="mnist", version_base="1.3")
 def run(cfg: DictConfig):
-    print('inside here')
+    print('inside here', flush=True)
     epoch_loop(dataloader=train_dataloader, target_accuracy=cfg.target_accuracy)
 
 
-if __name__ == "main":
+if __name__ == "__main__":
     run()
