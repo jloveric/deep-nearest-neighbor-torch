@@ -121,14 +121,20 @@ class Layer:
             ):  # TODO: don't want to hard code number of classes
                 indexes = (target_classification == i).nonzero().squeeze()
 
-                this_sum = torch.sum(distances[:, indexes], dim=1)
+                # TODO: When numel is one 1 I lose a dimension and stuff breaks. Figure out
+                # a better approach here.
+                if indexes.numel() == 1:
+                    indexes = indexes.unsqueeze(0)
 
-                predicted_sum = torch.where(
-                    predicted_sum > this_sum, predicted_sum, this_sum
-                )
-                predicted_classification = torch.where(
-                    predicted_sum > this_sum, predicted_classification, i
-                )
+                if indexes.numel() > 0:
+                    this_sum = torch.sum(distances[:, indexes], dim=1)
+
+                    predicted_sum = torch.where(
+                        predicted_sum > this_sum, predicted_sum, this_sum
+                    )
+                    predicted_classification = torch.where(
+                        predicted_sum > this_sum, predicted_classification, i
+                    )
         return predicted_classification
 
     def incorrect_predictions(
@@ -283,4 +289,4 @@ class Layer:
         This does not make a prediction, just gives distances to each neighbor, so
         it's a new set of features similar to what happens in a neural network.
         """
-        return self._distance_metric(x)
+        return self._distance_metric(self._neighbors, x)

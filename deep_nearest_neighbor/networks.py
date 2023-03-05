@@ -13,19 +13,28 @@ class ForwardLoader:
     bad.
     """
 
-    def __init__(self, network: "Network", dataloader: DataLoader, layer_index: int):
+    def __init__(
+        self,
+        network: "Network",
+        dataloader: DataLoader,
+        layer_index: int,
+        device: str = "cuda",
+    ):
         self._network = network
         self._loader_iter = iter(dataloader)
         self._layer_index = layer_index
+        self._device = device
 
     def __iter__(self):
         return self
 
     def __next__(self):
         x, y = next(self._loader_iter)
-        for layer in range(self._layer_index):
-            x = layer(x)
-        return x
+        x = x.to(self._device)
+        y = y.to(self._device)
+        for layer_index in range(self._layer_index):
+            x = self._network._layer_list[layer_index](x)
+        return x, y
 
 
 class Network:
@@ -49,12 +58,12 @@ class Network:
             device=device,
             target_accuracy=target_accuracy,
         )
-
+        self._device = device
         self._layer_list = [self.layer1, self.layer2]
         self.dataloader = dataloader
 
     def forward(self, x: Tensor, to_index: int):
-        out = x
+        out = x.to(self._device)
         for layer_index in range(to_index + 1):
             out = self._layer_list[layer_index](out)
 
@@ -66,6 +75,9 @@ class Network:
     def train(self):
         for count, layer in enumerate(self._layer_list):
             dataloader = ForwardLoader(
-                network=self, dataloader=self.dataloader, layer_index=count
+                network=self,
+                dataloader=self.dataloader,
+                layer_index=count,
+                device=self._device,
             )
             layer.epoch_loop(dataloader=dataloader)
