@@ -32,7 +32,7 @@ def layer(keys: Tensor, values: Tensor, epsilon: float = 1e-6) -> Tensor:
     distances = []
     for value in values:
         delta = keys - value
-        dist = 1 / (torch.linalg.norm(delta, dim=1) + epsilon)
+        dist = 1 / torch.pow((torch.linalg.norm(delta, dim=1) + epsilon), 8)
         distances.append(dist)
 
     res = torch.stack(distances)
