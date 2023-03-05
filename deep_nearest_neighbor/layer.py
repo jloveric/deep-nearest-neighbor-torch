@@ -57,15 +57,16 @@ def predict(
         predicted_classification = 0
         predicted_sum = 0
         for i in range(10):  # TODO: don't want to hard code number of classes
-            indexes = (target_classification == i).nonzero()
-            this_sum = torch.sum(distances[indexes], dim=1)
+            indexes = (target_classification == i).nonzero().squeeze()
+
+            this_sum = torch.sum(distances[:, indexes], dim=1)
+
             predicted_sum = torch.where(
                 predicted_sum > this_sum, predicted_sum, this_sum
             )
             predicted_classification = torch.where(
                 predicted_sum > this_sum, predicted_classification, i
             )
-
     return predicted_classification
 
 
