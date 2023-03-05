@@ -1,1 +1,8 @@
-target_accuracy : 0.9
+target_accuracy: 0.95
+device: cuda
+pin_memory: True
+batch_size: 1
+
+hydra:
+  run:
+    dir: ./outputs/${now:%Y-%m-%d}/${now:%H-%M-%S}

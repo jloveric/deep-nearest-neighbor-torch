@@ -1,6 +1,15 @@
 import torch
 from torch.utils.data import DataLoader
 from tqdm import tqdm
+from typing import NamedTuple
+import time
+
+
+class Results(NamedTuple):
+    error: float
+    accuracy: float
+    incorrect: int
+    total: int
 
 
 def layer(keys: torch.Tensor, values: torch.Tensor) -> torch.Tensor:
@@ -47,7 +56,6 @@ def extend_neighbors(
     new_keys: torch.Tensor,
     new_class: torch.Tensor,
 ) -> torch.Tensor:
-    print("keys.shape", keys.shape, "new_keys.shape", new_keys.shape)
     ext_keys = torch.cat([keys, new_keys], dim=0)
     ext_class = torch.cat([key_class, new_class], dim=0)
     return ext_keys, ext_class
@@ -107,10 +115,17 @@ def test_wrong(
     return wrong_indices.numel()
 
 
-def test_loop(neighbors, neighbor_class, dataloader: DataLoader):
+def test_loop(neighbors, neighbor_class, dataloader: DataLoader, device: str = "cpu"):
     wrong = 0
+    datapoints = 0
+
+    t_start = time.perf_counter()
     for data in tqdm(iter(dataloader)):
         x, y = data
+        x = x.to(device)
+        y = y.to(device)
+
+        datapoints += len(x)
         wrong += test_wrong(
             neighbors=neighbors,
             neighbor_class=neighbor_class,
@@ -118,14 +133,28 @@ def test_loop(neighbors, neighbor_class, dataloader: DataLoader):
             sample_class=y,
         )
 
+    t_total = time.perf_counter() - t_start
+    print(f"Epoch_loop time {t_total}")
 
-def epoch_loop(dataloader: DataLoader, target_accuracy=0.9):
+    return Results(
+        error=wrong / datapoints,
+        accuracy=(datapoints - wrong) / datapoints,
+        incorrect=wrong,
+        total=datapoints,
+    )
+
+
+def epoch_loop(dataloader: DataLoader, target_accuracy=0.9, device: str = "cpu"):
     data_iter = iter(dataloader)
 
     neighbors, neighbor_class = next(data_iter)
-
+    neighbors = neighbors.to(device)
+    neighbor_class = neighbor_class.to(device)
+    t_start = time.perf_counter()
     for data in tqdm(data_iter):
         x, y = data
+        x = x.to(device)
+        y = y.to(device)
 
         neighbors, neighbor_class = train_loop(
             neighbors=neighbors,
@@ -134,5 +163,7 @@ def epoch_loop(dataloader: DataLoader, target_accuracy=0.9):
             sample_class=y,
             target_accuracy=target_accuracy,
         )
+    t_total = time.perf_counter() - t_start
+    print(f"Epoch_loop time {t_total}")
 
     return neighbors, neighbor_class
