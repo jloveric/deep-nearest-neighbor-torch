@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 from torch.utils.data import DataLoader
 from omegaconf import DictConfig, OmegaConf
 import hydra
-from deep_nearest_neighbor.layer import train_loop, epoch_loop, test_loop
+from deep_nearest_neighbor.layer import Layer, euclidian_distance, cosine_distance
 import os
 from pathlib import Path
 
@@ -43,33 +43,32 @@ def run(cfg: DictConfig):
     # print(f"hydra.run.dir", hydra.run.dir)
     print(f"Current working directory : {os.getcwd()}")
     # print(f"Orig working directory    : {get_original_cwd()}")
-    neighbors, neighbor_class = epoch_loop(
-        dataloader=train_dataloader,
-        target_accuracy=cfg.target_accuracy,
+    layer = Layer(
+        num_classes=10,
+        distance_metric=euclidian_distance,
         device=cfg.device,
+        target_accuracy=cfg.target_accuracy,
     )
-    num_neighbors = len(neighbors)
 
-    print("neighbors.device", neighbors.device)
-    print("neighbor_class.device", neighbor_class.device)
+    layer.epoch_loop(
+        dataloader=train_dataloader,
+    )
+    num_neighbors = len(layer.neighbors)
+
+    print("neighbors.device", layer.neighbors.device)
+    print("neighbor_class.device", layer.neighbor_class.device)
 
     directory = Path(os.getcwd())
-    torch.save(neighbors, str(directory / "neighbors.pt"))
-    torch.save(neighbor_class, str(directory / "neighbor_classes.pt"))
+    torch.save(layer.neighbors, str(directory / "neighbors.pt"))
+    torch.save(layer.neighbor_class, str(directory / "neighbor_classes.pt"))
 
-    train_result = test_loop(
-        neighbors=neighbors,
-        neighbor_class=neighbor_class,
+    train_result = layer.test_loop(
         dataloader=train_dataloader,
-        device=cfg.device,
     )
     print("train_result", train_result)
 
-    test_result = test_loop(
-        neighbors=neighbors,
-        neighbor_class=neighbor_class,
+    test_result = layer.test_loop(
         dataloader=test_dataloader,
-        device=cfg.device,
     )
 
     print("test_result", test_result)
