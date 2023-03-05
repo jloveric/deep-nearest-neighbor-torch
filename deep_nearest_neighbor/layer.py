@@ -13,6 +13,11 @@ class Predictor(Enum):
     Interp = 1
 
 
+class DistanceMetric(Enum):
+    Euclidian = 0
+    Cosine = 1
+
+
 class Results(NamedTuple):
     error: float
     accuracy: float
@@ -20,7 +25,12 @@ class Results(NamedTuple):
     total: int
 
 
-def layer(keys: Tensor, values: Tensor, epsilon: float = 1e-6) -> Tensor:
+def layer(
+    keys: Tensor,
+    values: Tensor,
+    epsilon: float = 1e-6,
+    metric: DistanceMetric = DistanceMetric.Euclidian,
+) -> Tensor:
     """
     Compute the inverse distance from each of the neighbors and store that
     in the returning vector.
@@ -29,14 +39,29 @@ def layer(keys: Tensor, values: Tensor, epsilon: float = 1e-6) -> Tensor:
     :param epsilon: factor so the inverse doesn't become infinite
     :return: inverse distance between keys and values
     """
-    distances = []
-    for value in values:
-        delta = keys - value
-        dist = 1 / torch.pow((torch.linalg.norm(delta, dim=1) + epsilon), 8)
-        distances.append(dist)
+    if metric == DistanceMetric.Euclidian:
+        if False:
+            distances = []
+            for value in values:
+                delta = keys - value
+                dist = 1 / torch.pow((torch.linalg.norm(delta, dim=1) + epsilon), 8)
+                distances.append(dist)
 
-    res = torch.stack(distances)
-    return res
+            res = torch.stack(distances)
+            return res
+        else:
+            delta = values.unsqueeze(1) - keys
+            distance = 1 / torch.pow((torch.linalg.norm(delta, dim=2) + epsilon), 8)
+
+            return distance
+
+    elif metric == DistanceMetric.Cosine:
+        distances = (
+            torch.nn.functional.normalize(values)
+            @ torch.nn.functional.normalize(keys).t()
+        )
+        distances = 1 / torch.pow(1 - torch.abs(distances) + epsilon, 2)
+        return distances
 
 
 def predict(

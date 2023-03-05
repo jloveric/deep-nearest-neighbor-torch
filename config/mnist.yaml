@@ -1,4 +1,4 @@
-target_accuracy: 0.99
+target_accuracy: 0.9
 device: cuda
 pin_memory: True
 batch_size: 64
