@@ -48,6 +48,8 @@ def run(cfg: DictConfig):
         target_accuracy=cfg.target_accuracy,
         device=cfg.device,
     )
+    num_neighbors = len(neighbors)
+
     print("neighbors.device", neighbors.device)
     print("neighbor_class.device", neighbor_class.device)
 
@@ -69,7 +71,9 @@ def run(cfg: DictConfig):
         dataloader=test_dataloader,
         device=cfg.device,
     )
+
     print("test_result", test_result)
+    print("neighbors in model", num_neighbors)
 
 
 if __name__ == "__main__":

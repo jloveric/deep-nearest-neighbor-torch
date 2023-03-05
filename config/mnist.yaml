@@ -1,7 +1,7 @@
 target_accuracy: 0.95
 device: cuda
 pin_memory: True
-batch_size: 1
+batch_size: 64
 
 hydra:
   run:
