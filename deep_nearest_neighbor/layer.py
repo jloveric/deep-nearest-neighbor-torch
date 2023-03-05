@@ -277,3 +277,10 @@ class Layer:
         print(f"Epoch_loop time {t_total}")
 
         return self._neighbors, self._neighbor_class
+
+    def __call__(self, x):
+        """
+        This does not make a prediction, just gives distances to each neighbor, so
+        it's a new set of features similar to what happens in a neural network.
+        """
+        return self._distance_metric(x)
