@@ -29,9 +29,8 @@ test_data = datasets.MNIST(
     root="data", train=False, download=True, transform=TransformFlat()
 )
 
-"""
-@hydra.main(config_path="../config", config_name="mnist", version_base="1.3")
-def run(cfg: DictConfig):
+
+def run_single_layer(cfg: DictConfig):
     train_dataloader = DataLoader(
         training_data,
         batch_size=cfg.batch_size,
@@ -49,6 +48,7 @@ def run(cfg: DictConfig):
         distance_metric=euclidian_distance,
         device=cfg.device,
         target_accuracy=cfg.target_accuracy,
+        max_neighbors=cfg.max_neighbors,
     )
 
     layer.epoch_loop(
@@ -76,11 +76,7 @@ def run(cfg: DictConfig):
     print("neighbors in model", num_neighbors)
 
 
-"""
-
-
-@hydra.main(config_path="../config", config_name="mnist", version_base="1.3")
-def run(cfg: DictConfig):
+def run_network(cfg: DictConfig):
     train_dataloader = DataLoader(
         training_data,
         batch_size=cfg.batch_size,
@@ -94,15 +90,15 @@ def run(cfg: DictConfig):
     print(f"Current working directory : {os.getcwd()}")
     # print(f"Orig working directory    : {get_original_cwd()}")
     network = Network(
-        dataloader=test_dataloader,
+        dataloader=train_dataloader,
         num_classes=10,
         distance_metric=euclidian_distance,
         device=cfg.device,
         target_accuracy=cfg.target_accuracy,
+        max_neighbors=cfg.max_neighbors,
     )
 
     network.train()
-
     """
     layer.epoch_loop(
         dataloader=train_dataloader,
@@ -128,6 +124,12 @@ def run(cfg: DictConfig):
     print("test_result", test_result)
     print("neighbors in model", num_neighbors)
     """
+
+
+@hydra.main(config_path="../config", config_name="mnist", version_base="1.3")
+def run(cfg: DictConfig):
+    run_single_layer(cfg=cfg)
+    # run_network(cfg=cfg)
 
 
 if __name__ == "__main__":
