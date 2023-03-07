@@ -13,9 +13,7 @@ from torchvision import transforms
 logger = logging.getLogger(__name__)
 
 
-def image_to_dataset(
-    filename: str, peano: str = False, rotations: int = 1, device="cpu"
-):
+def image_to_dataset(filename: str, device="cpu"):
     """
     Read in an image file and return the flattened position input
     flattened output and torch array of the original image.def image_to_dataset(filename: str, peano: str = False, rotations: int = 1):
@@ -29,15 +27,25 @@ def image_to_dataset(
     img = image.imread(filename)
 
     torch_image = torch.from_numpy(np.array(img))
+    shape = torch_image.shape
+    pixels = shape[0] * shape[1]
 
-    return torch_image_flat, torch_position, torch_image
+    x = torch.arange(torch_image.shape[0])
+    y = torch.arange(torch_image.shape[1])
+    mesh = torch.meshgrid(x, y, indexing="ij")
+
+    return (
+        torch_image.reshape(pixels, -1),
+        torch.cat([mesh[0].unsqueeze(2), mesh[0].unsqueeze(2)], dim=2).reshape(
+            pixels, -1
+        ),
+        torch_image,
+    )
 
 
 class ImageDataset(Dataset):
-    def __init__(self, filenames: List[str], rotations: int = 1):
-        self.output, self.input, self.image = image_to_dataset(
-            filenames[0], rotations=rotations
-        )
+    def __init__(self, filenames: List[str]):
+        self.output, self.input, self.image = image_to_dataset(filenames[0])
 
     def __len__(self):
         return len(self.output)
