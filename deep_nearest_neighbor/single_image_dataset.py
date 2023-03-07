@@ -33,10 +33,11 @@ def image_to_dataset(filename: str, device="cpu"):
     x = torch.arange(torch_image.shape[0])
     y = torch.arange(torch_image.shape[1])
     mesh = torch.meshgrid(x, y, indexing="ij")
+    print('mesh', mesh)
 
     return (
         torch_image.reshape(pixels, -1),
-        torch.cat([mesh[0].unsqueeze(2), mesh[0].unsqueeze(2)], dim=2).reshape(
+        torch.cat([mesh[0].unsqueeze(2), mesh[1].unsqueeze(2)], dim=2).reshape(
             pixels, -1
         ),
         torch_image,
@@ -44,8 +45,8 @@ def image_to_dataset(filename: str, device="cpu"):
 
 
 class ImageDataset(Dataset):
-    def __init__(self, filenames: List[str]):
-        self.output, self.input, self.image = image_to_dataset(filenames[0])
+    def __init__(self, filename: str):
+        self.output, self.input, self.image = image_to_dataset(filename)
 
     def __len__(self):
         return len(self.output)
