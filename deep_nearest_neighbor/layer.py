@@ -472,7 +472,7 @@ class RegressionLayer:
 
         if self._neighbors == None:
             # Set the neighbors to the first batch
-            self._neighbors, self._neighbor_class = next(data_iter)
+            self._neighbors, self._neighbor_value = next(data_iter)
             # print(
             #    "creating first batch",
             #    self._neighbors.shape,
@@ -480,26 +480,25 @@ class RegressionLayer:
             # )
 
         self._neighbors = self._neighbors.to(self._device)
-        self._neighbor_class = self._neighbor_class.to(self._device)
+        self._neighbor_value = self._neighbor_value.to(self._device)
         t_start = time.perf_counter()
         for count, data in enumerate(pbar := tqdm(data_iter)):
             pbar.set_postfix({"neighbors": len(self._neighbors)})
-            # print("count", count)
+
             x, y = data
             x = x.to(self._device)
             y = y.to(self._device)
 
-            # print("x", x, "y", y)
-            self._neighbors, self._neighbor_class = self.train_loop(
+            self._neighbors, self._neighbor_value = self.train_loop(
                 samples=x,
-                sample_class=y,
+                sample_values=y,
                 target_accuracy=self._target_accuracy,
             )
         t_total = time.perf_counter() - t_start
         print(f"Epoch_loop time {t_total}")
         print(f"Network neighbors {len(self._neighbors)}")
 
-        return self._neighbors, self._neighbor_class
+        return self._neighbors, self._neighbor_value
 
     def __call__(self, x):
         """
