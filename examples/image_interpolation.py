@@ -7,7 +7,7 @@ from torch.utils.data import DataLoader
 from omegaconf import DictConfig, OmegaConf
 import hydra
 from deep_nearest_neighbor.single_image_dataset import ImageDataset
-from deep_nearest_neighbor.layer import Layer, euclidian_distance, cosine_distance
+from deep_nearest_neighbor.layer import RegressionLayer, euclidian_distance, cosine_distance
 from deep_nearest_neighbor.networks import Network
 import os
 from pathlib import Path
@@ -36,8 +36,7 @@ def run_single_layer(cfg: DictConfig):
     # print(f"hydra.run.dir", hydra.run.dir)
     print(f"Current working directory : {os.getcwd()}")
     # print(f"Orig working directory    : {get_original_cwd()}")
-    layer = Layer(
-        num_classes=10,
+    layer = RegressionLayer(
         distance_metric=euclidian_distance,
         device=cfg.device,
         target_accuracy=cfg.target_accuracy,
@@ -50,11 +49,11 @@ def run_single_layer(cfg: DictConfig):
     num_neighbors = len(layer.neighbors)
 
     print("neighbors.device", layer.neighbors.device)
-    print("neighbor_class.device", layer.neighbor_class.device)
+    print("neighbor_class.device", layer.neighbor_value.device)
 
     directory = Path(os.getcwd())
     torch.save(layer.neighbors, str(directory / "neighbors.pt"))
-    torch.save(layer.neighbor_class, str(directory / "neighbor_classes.pt"))
+    torch.save(layer.neighbor_value, str(directory / "neighbor_classes.pt"))
 
     train_result = layer.test_loop(
         dataloader=train_dataloader,
