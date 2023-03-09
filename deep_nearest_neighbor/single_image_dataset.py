@@ -26,12 +26,12 @@ def image_to_dataset(filename: str, device="cpu"):
     """
     img = image.imread(filename)
 
-    torch_image = torch.from_numpy(np.array(img))
+    torch_image = torch.from_numpy(np.array(img)).float()
     shape = torch_image.shape
     pixels = shape[0] * shape[1]
 
-    x = torch.arange(torch_image.shape[0])
-    y = torch.arange(torch_image.shape[1])
+    x = torch.arange(torch_image.shape[0], dtype=torch.float)
+    y = torch.arange(torch_image.shape[1], dtype=torch.float)
     mesh = torch.meshgrid(x, y, indexing="ij")
     print('mesh', mesh)
 

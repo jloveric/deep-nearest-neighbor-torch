@@ -378,7 +378,7 @@ class RegressionLayer:
         new_class: Tensor,
     ) -> None:
         self._neighbors = torch.cat([self._neighbors, new_keys], dim=0)
-        self._neighbor_class = torch.cat([self._neighbor_class, new_class], dim=0)
+        self._neighbor_value = torch.cat([self._neighbor_value, new_class], dim=0)
 
     def train_loop(
         self,
@@ -409,21 +409,21 @@ class RegressionLayer:
                 keys=self._neighbors, values=samples
             )
             final_predictions = self.predict(
-                distances=final_distances, target_values=self._neighbor_value
+                distances=final_distances, target_value=self._neighbor_value
             )
             how_good = torch.abs(final_predictions - sample_values)
 
             result = torch.sum(how_good) / how_good.shape[0]
             count += 1
 
-        return self._neighbors, self._neighbor_class
+        return self._neighbors, self._neighbor_value
 
     def test_wrong(
         self,
         neighbors: Tensor,
-        neighbor_class: Tensor,
+        neighbor_value: Tensor,
         samples: Tensor,
-        sample_class: Tensor,
+        sample_value: Tensor,
     ) -> int:
         """
         Return the number of elements that are wrong in samples
@@ -433,8 +433,8 @@ class RegressionLayer:
 
         wrong_indices = self.incorrect_predictions(
             distances=distances,
-            target_classification=neighbor_class,
-            sample_classification=sample_class,
+            target_value=neighbor_value,
+            sample_value=sample_value,
         )
 
         return wrong_indices.numel()
