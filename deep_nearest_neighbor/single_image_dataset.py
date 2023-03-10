@@ -33,7 +33,6 @@ def image_to_dataset(filename: str, device="cpu"):
     x = torch.arange(torch_image.shape[0], dtype=torch.float)
     y = torch.arange(torch_image.shape[1], dtype=torch.float)
     mesh = torch.meshgrid(x, y, indexing="ij")
-    print('mesh', mesh)
 
     return (
         torch_image.reshape(pixels, -1),

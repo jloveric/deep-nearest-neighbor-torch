@@ -510,7 +510,8 @@ class RegressionLayer:
 
     def __call__(self, x):
         """
-        This does not make a prediction, just gives distances to each neighbor, so
-        it's a new set of features similar to what happens in a neural network.
+        Predict y from x
         """
-        return self._distance_metric(self._neighbors, x)
+        distances = self._distance_metric(self._neighbors, x)
+        predictions = self.predict(distances, target_value=self._neighbor_value)
+        return predictions

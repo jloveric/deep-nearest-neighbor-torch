@@ -6,11 +6,17 @@ import matplotlib.pyplot as plt
 from torch.utils.data import DataLoader
 from omegaconf import DictConfig, OmegaConf
 import hydra
-from deep_nearest_neighbor.single_image_dataset import ImageDataset
-from deep_nearest_neighbor.layer import RegressionLayer, euclidian_distance, cosine_distance
+from deep_nearest_neighbor.single_image_dataset import ImageDataset,image_to_dataset,image
+from deep_nearest_neighbor.layer import (
+    RegressionLayer,
+    euclidian_distance,
+    cosine_distance,
+)
 from deep_nearest_neighbor.networks import Network
 import os
 from pathlib import Path
+import matplotlib.pyplot as plt
+import matplotlib.image as mpimg
 
 
 class TransformFlat:
@@ -21,8 +27,8 @@ class TransformFlat:
         data = self.to_tensor(input_data).flatten()
         return data
 
-
-training_data = ImageDataset(filename="images/mountains.jpg")
+filename = "images/mountains.jpg"
+training_data = ImageDataset(filename=filename)
 
 
 def run_single_layer(cfg: DictConfig):
@@ -61,6 +67,24 @@ def run_single_layer(cfg: DictConfig):
 
     print("train_result", train_result)
     print("neighbors in model", num_neighbors)
+    
+    # Use this to get the xy
+    img = image.imread(filename)
+    shape = img.shape
+    result = image_to_dataset(filename=filename, device=cfg.device)
+    #shape = result[0].shape
+    xy = result[1].to(cfg.device)
+
+
+    # predict the result
+    rgb = layer(xy)
+    print('rgb.shape', rgb.shape)
+    rgb = rgb.reshape(shape[0], shape[1], 3).cpu().numpy()
+
+    #img = mpimg.imread('your_image.png')
+    imgplot = plt.imshow(rgb)
+    plt.show()
+
 
 
 @hydra.main(
