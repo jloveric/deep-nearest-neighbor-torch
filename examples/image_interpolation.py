@@ -79,7 +79,7 @@ def run_single_layer(cfg: DictConfig):
     # predict the result
     rgb = layer(xy)
     print('rgb.shape', rgb.shape)
-    rgb = rgb.reshape(shape[0], shape[1], 3).cpu().numpy()
+    rgb = rgb.reshape(shape[0], shape[1], 3).cpu().numpy()/255.0
 
     #img = mpimg.imread('your_image.png')
     imgplot = plt.imshow(rgb)
