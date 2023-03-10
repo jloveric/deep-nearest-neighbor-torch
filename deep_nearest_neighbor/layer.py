@@ -363,7 +363,12 @@ class RegressionLayer:
 
         predicted_values = self.predict(distances=distances, target_value=target_value)
 
+        # All is Batch x N
         all = torch.abs(predicted_values - sample_value)
+        #print('all.shape', all.shape, predicted_values.shape, sample_value.shape)
+
+        all = all.pow(2).sum(dim=1).sqrt()
+
         wrong_indices = (
             torch.where(all < self._tolerance, True, False).nonzero().squeeze()
         )
@@ -377,6 +382,7 @@ class RegressionLayer:
         new_keys: Tensor,
         new_class: Tensor,
     ) -> None:
+        #print('self._neighbors.shape',self._neighbors.shape,'new_keys.shape',new_keys.shape)
         self._neighbors = torch.cat([self._neighbors, new_keys], dim=0)
         self._neighbor_value = torch.cat([self._neighbor_value, new_class], dim=0)
 
@@ -402,6 +408,8 @@ class RegressionLayer:
             if wrong_indices.numel() > 0:
                 new_keys = samples[wrong_indices]
                 new_values = sample_values[wrong_indices]
+
+                #print('neighbors.shape', self._neighbors.shape, 'new_keys.shape', new_keys.shape, 'wrong_indices.shape', wrong_indices.shape)
 
                 self.extend_neighbors(new_keys, new_values)
 
@@ -452,9 +460,9 @@ class RegressionLayer:
             datapoints += len(x)
             wrong += self.test_wrong(
                 neighbors=self._neighbors,
-                neighbor_class=self._neighbor_class,
+                neighbor_value=self._neighbor_value,
                 samples=x,
-                sample_class=y,
+                sample_value=y,
             )
 
         t_total = time.perf_counter() - t_start
