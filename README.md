@@ -1,4 +1,10 @@
 # Dynamic and Deep Nearest Neighbors in Pytorch
+This algorithm does nearest neighbor approximation, building the
+approximation in batch mode. Each batch adds "centers" or "neighbors" that are not approximated correctly, so instead of using the entire dataset as the list of neighbors, only uses a subset. The entire thing runs on the GPU using pytorch.  During evaluation, instead of taking the k-nearest neighbor a weighted average of all neighbors
+is used to comput the output. This is very similar to fully connected
+layers in neural networks, but it only every requires one epoch. The plan is to extend this to multiple layers.
+
+# Invariant MNIST
 To run
 ```
 python examples/mnist.py 

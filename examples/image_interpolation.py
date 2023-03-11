@@ -48,7 +48,7 @@ def run_single_layer(cfg: DictConfig):
     print(f"Current working directory : {os.getcwd()}")
     # print(f"Orig working directory    : {get_original_cwd()}")
     layer = RegressionLayer(
-        distance_metric=EuclidianDistance(epsilon=1e-3, exponent=10.0),
+        distance_metric=EuclidianDistance(epsilon=cfg.epsilon, exponent=cfg.exponent),
         device=cfg.device,
         target_accuracy=cfg.target_accuracy,
         max_neighbors=cfg.max_neighbors,

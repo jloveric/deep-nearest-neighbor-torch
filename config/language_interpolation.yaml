@@ -4,14 +4,6 @@ pin_memory: True
 batch_size: 64
 max_neighbors: 1000000
 tolerance: 0.01
-
-#Add this value to a positive number before taking
-#an inverse to prevent infinity
-epsilon: 1e-6
-
-# distance raised to the inverse to the -exponent
-exponent: 6
-
 hydra:
   run:
     dir: ./outputs/${now:%Y-%m-%d}/${now:%H-%M-%S}
