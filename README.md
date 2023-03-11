@@ -1,6 +1,6 @@
 # Dynamic and Deep Nearest Neighbors in Pytorch
 This algorithm does nearest neighbor approximation, building the
-approximation in batch mode.  This could also be thought of as a radial basis function network built dynamically. Each batch adds the "centers" or "neighbors" that are not approximated correctly, so instead of using the entire dataset as the list of neighbors, only uses a subset. The entire thing runs on the GPU using pytorch.  During evaluation, instead of taking the k-nearest neighbor a weighted average of all neighbors
+approximation in batch mode.  This could also be thought of as a radial basis function network built dynamically. Each batch adds the "centers" or "neighbors" that are not approximated correctly from the existing model, so instead of using the entire dataset as the list of neighbors, only uses a subset. The entire thing runs on the GPU using pytorch.  During evaluation, instead of taking the k-nearest neighbor a weighted average of all neighbors
 is used to compute the output (the weighting is a function of the inverse distance).
 
 # Invariant MNIST
