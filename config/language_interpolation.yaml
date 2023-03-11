@@ -4,6 +4,9 @@ pin_memory: True
 batch_size: 64
 max_neighbors: 1000000
 tolerance: 0.01
+num_features: 10
+num_targets: 1
+
 hydra:
   run:
     dir: ./outputs/${now:%Y-%m-%d}/${now:%H-%M-%S}
