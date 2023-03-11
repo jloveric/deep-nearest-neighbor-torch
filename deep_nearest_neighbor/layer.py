@@ -123,13 +123,20 @@ class Layer:
             predicted_classification = 0
             predicted_sum = 0
             for i in range(self._num_classes):
-                indexes = (target_classification == i).nonzero().squeeze()
+                indexes = (target_classification.flatten() == i).nonzero().squeeze()
+                # print("target_classification", target_classification)
 
                 # TODO: When numel is one 1 I lose a dimension and stuff breaks. Figure out
                 # a better approach here.
+
+                # None of the indexes match
+                # if indexes.numel() == 0:
+                #    continue
+                # print("indexes.shape", indexes.shape, i, indexes)
+
                 if indexes.numel() == 1:
                     indexes = indexes.unsqueeze(0)
-
+                # print("indexes.shape", indexes.shape, i)
                 if indexes.numel() > 0:
                     this_sum = torch.sum(distances[:, indexes], dim=1)
 
@@ -268,7 +275,9 @@ class Layer:
 
         if self._neighbors == None:
             # Set the neighbors to the first batch
-            self._neighbors, self._neighbor_class = next(data_iter)
+            x, y = next(data_iter)
+            self._neighbors = x
+            self._neighbor_class = y.flatten()
             # print(
             #    "creating first batch",
             #    self._neighbors.shape,
@@ -283,8 +292,8 @@ class Layer:
             # print("count", count)
             x, y = data
             x = x.to(self._device)
-            y = y.to(self._device)
-
+            y = y.to(self._device).flatten()
+            # print("x", x.shape, "y", y.shape)
             # print("x", x, "y", y)
             self._neighbors, self._neighbor_class = self.train_loop(
                 samples=x,

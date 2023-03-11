@@ -55,7 +55,6 @@ class TextDataset(SingleTextDataset):
         inputs = self.inputs[index].clone()
         if self.transforms is not None:
             inputs = self.transforms(inputs)
-
         return inputs.float(), self.output[index]
 
 
