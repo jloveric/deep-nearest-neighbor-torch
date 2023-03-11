@@ -48,7 +48,7 @@ def run_single_layer(cfg: DictConfig):
     print(f"Current working directory : {os.getcwd()}")
     # print(f"Orig working directory    : {get_original_cwd()}")
     layer = RegressionLayer(
-        distance_metric=EuclidianDistance(epsilon=1e-3, exponent=8.0),
+        distance_metric=EuclidianDistance(epsilon=1e-3, exponent=10.0),
         device=cfg.device,
         target_accuracy=cfg.target_accuracy,
         max_neighbors=cfg.max_neighbors,
@@ -95,7 +95,20 @@ def run_single_layer(cfg: DictConfig):
     rgb = rgb.reshape(shape[0], shape[1], 3).cpu().numpy()
 
     # img = mpimg.imread('your_image.png')
+    centers = layer._neighbors.to("cpu")
+    colors = layer._neighbor_value.to("cpu")
+    print("center.shape", centers.shape)
+    # plt.figure(1)
+    plt.subplot(1, 2, 1)
+    plt.scatter(centers[:, 1], -centers[:, 0], s=1, c=colors)
+    plt.axis("off")
+    plt.axis("equal")
+    # plt.figure(2)
+    plt.subplot(1, 2, 2)
+
     imgplot = plt.imshow(rgb)
+    plt.axis("off")
+
     plt.show()
 
 
