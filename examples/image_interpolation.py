@@ -47,6 +47,7 @@ def run_single_layer(cfg: DictConfig):
         device=cfg.device,
         target_accuracy=cfg.target_accuracy,
         max_neighbors=cfg.max_neighbors,
+        tolerance=cfg.tolerance,
     )
 
     layer.epoch_loop(
