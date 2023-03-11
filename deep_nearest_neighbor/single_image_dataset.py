@@ -26,7 +26,7 @@ def image_to_dataset(filename: str, device="cpu"):
     """
     img = image.imread(filename)
 
-    torch_image = torch.from_numpy(np.array(img)).float()
+    torch_image = torch.from_numpy(np.array(img)).float() / 255.0
     shape = torch_image.shape
     pixels = shape[0] * shape[1]
 

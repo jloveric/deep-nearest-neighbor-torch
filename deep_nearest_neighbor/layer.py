@@ -36,26 +36,28 @@ def euclidian_distance(
     :param epsilon: factor so the inverse doesn't become infinite
     :return: inverse distance between keys and values
     """
-    if False:  # lower memory
-        distances = []
-        for value in values:
-            delta = keys - value
-            dist = 1 / torch.pow((torch.linalg.norm(delta, dim=1) + epsilon), 8)
-            distances.append(dist)
 
-        res = torch.stack(distances)
-        return res
-    else:
-        delta = values.unsqueeze(1) - keys
-        distance = 1 / torch.pow((torch.linalg.norm(delta, dim=2) + epsilon), exponent)
-        # print("distance", distance)
-        # distance = torch.nan_to_num(
-        #    torch.nn.functional.normalize(distance, dim=1), nan=0.0, posinf=1.0
-        # )
-        # print("distance", distance)
-        # distance = 1 / torch.pow((torch.linalg.norm(delta, dim=2) + epsilon), 8)
+    delta = values.unsqueeze(1) - keys
+    distance = 1 / torch.pow((torch.linalg.norm(delta, dim=2) + epsilon), exponent)
+    # print("distance", distance)
+    # distance = torch.nan_to_num(
+    #    torch.nn.functional.normalize(distance, dim=1), nan=0.0, posinf=1.0
+    # )
+    # print("distance", distance)
+    # distance = 1 / torch.pow((torch.linalg.norm(delta, dim=2) + epsilon), 8)
 
-        return distance
+    return distance
+
+
+class EuclidianDistance:
+    def __init__(self, epsilon: float = 1e-3, exponent: float = 2):
+        self._epsilon = epsilon
+        self._exponent = exponent
+
+    def __call__(self, keys: Tensor, values: Tensor):
+        return euclidian_distance(
+            keys=keys, values=values, epsilon=self._epsilon, exponent=self._exponent
+        )
 
 
 def cosine_distance(
@@ -320,6 +322,10 @@ class RegressionLayer:
         self._max_neighbors = max_neighbors
         self._tolerance = tolerance
 
+    def to(self, device):
+        self._neighbors = self._neighbors.to(device)
+        self._neighbor_value = self._neighbor_value.to(device)
+
     @property
     def neighbors(self) -> Tensor:
         return self._neighbors
@@ -365,12 +371,12 @@ class RegressionLayer:
 
         # All is Batch x N
         all = torch.abs(predicted_values - sample_value)
-        #print('all.shape', all.shape, predicted_values.shape, sample_value.shape)
+        # print('all.shape', all.shape, predicted_values.shape, sample_value.shape)
 
         all = all.pow(2).sum(dim=1).sqrt()
 
         wrong_indices = (
-            torch.where(all < self._tolerance, True, False).nonzero().squeeze()
+            torch.where(all < self._tolerance, False, True).nonzero().squeeze()
         )
         if wrong_indices.numel() == 1:
             wrong_indices = wrong_indices.unsqueeze(dim=0)
@@ -382,7 +388,7 @@ class RegressionLayer:
         new_keys: Tensor,
         new_class: Tensor,
     ) -> None:
-        #print('self._neighbors.shape',self._neighbors.shape,'new_keys.shape',new_keys.shape)
+        # print('self._neighbors.shape',self._neighbors.shape,'new_keys.shape',new_keys.shape)
         self._neighbors = torch.cat([self._neighbors, new_keys], dim=0)
         self._neighbor_value = torch.cat([self._neighbor_value, new_class], dim=0)
 
@@ -394,7 +400,7 @@ class RegressionLayer:
     ):
         result = 0
         count = 0
-        while (result < target_accuracy) and (
+        while (result < 1 - target_accuracy) and (
             len(self._neighbors) <= self._max_neighbors
         ):
             distances = self._distance_metric(keys=self._neighbors, values=samples)
@@ -406,12 +412,15 @@ class RegressionLayer:
             )
 
             if wrong_indices.numel() > 0:
+                # print("woring_indices", wrong_indices.numel())
                 new_keys = samples[wrong_indices]
                 new_values = sample_values[wrong_indices]
 
-                #print('neighbors.shape', self._neighbors.shape, 'new_keys.shape', new_keys.shape, 'wrong_indices.shape', wrong_indices.shape)
+                # print('neighbors.shape', self._neighbors.shape, 'new_keys.shape', new_keys.shape, 'wrong_indices.shape', wrong_indices.shape)
 
                 self.extend_neighbors(new_keys, new_values)
+            else:
+                break
 
             final_distances = self._distance_metric(
                 keys=self._neighbors, values=samples
@@ -419,10 +428,11 @@ class RegressionLayer:
             final_predictions = self.predict(
                 distances=final_distances, target_value=self._neighbor_value
             )
-            how_good = torch.abs(final_predictions - sample_values)
-
-            result = torch.sum(how_good) / how_good.shape[0]
+            how_good = torch.abs(final_predictions - sample_values).flatten()
+            # print("how_good.shape", how_good.shape)
+            result = 1.0 - torch.sum(how_good) / how_good.shape[0]
             count += 1
+            # print("result", result, count)
 
         return self._neighbors, self._neighbor_value
 
