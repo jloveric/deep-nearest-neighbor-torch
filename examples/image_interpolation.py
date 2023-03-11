@@ -80,10 +80,10 @@ def run_single_layer(cfg: DictConfig):
     result = image_to_dataset(filename=filename, device=cfg.device)
     # shape = result[0].shape
 
-    xy = result[1].to("cpu")
+    xy = result[1].to(cfg.device)
 
     # predict the result
-    layer.to("cpu")
+    # layer.to("cpu")
 
     rgb = []
     for i in range(0, len(xy), cfg.batch_size):
