@@ -16,3 +16,10 @@ Epoch_loop time 3.330857837001531
 test_result Results(error=0.0351, accuracy=0.9649, incorrect=351, total=10000)
 neighbors in model 3255
 ```
+
+# Image compression using nearest neighbor approximation
+Run
+```
+python examples/image_interpolation.py tolerance=0.2 target_accuracy=0.8
+```
+![Image Approximation](results/NearestNeighborApproximation.png)
