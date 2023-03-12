@@ -18,6 +18,9 @@ from language_interpolation.single_text_dataset import (
 from typing import Callable, Tuple, Any, List
 from torch import Tensor
 from hydra.utils import get_original_cwd, to_absolute_path
+from language_interpolation.utils import (
+    create_gutenberg_cache,
+)
 
 
 class TextDataset(SingleTextDataset):
@@ -61,9 +64,11 @@ class TextDataset(SingleTextDataset):
 
 
 def run_single_layer(cfg: DictConfig):
+    create_gutenberg_cache(parent_directory=hydra.utils.get_original_cwd())
+
     if cfg.train is True:
         training_data = TextDataset(
-            gutenberg_ids=[1, 2],
+            gutenberg_ids=cfg.gutenberg_train,
             features=cfg.num_features,
             targets=cfg.num_targets,
             num_workers=0,
@@ -71,7 +76,7 @@ def run_single_layer(cfg: DictConfig):
         )
 
         test_data = TextDataset(
-            gutenberg_ids=[3],
+            gutenberg_ids=cfg.gutenberg_test,
             features=cfg.num_features,
             targets=cfg.num_targets,
             num_workers=0,

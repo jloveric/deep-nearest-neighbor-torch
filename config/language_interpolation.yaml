@@ -6,6 +6,8 @@ max_neighbors: 1000000
 tolerance: 0.01
 num_features: 10
 num_targets: 1
+gutenberg_train: [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
+gutenberg_test: [1]
 
 # Related to testing
 train: True
