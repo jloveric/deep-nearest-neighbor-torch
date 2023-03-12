@@ -250,7 +250,7 @@ class Layer:
         for data in tqdm(iter(dataloader)):
             x, y = data
             x = x.to(self._device)
-            y = y.to(self._device)
+            y = y.flatten().to(self._device)
 
             datapoints += len(x)
             wrong += self.test_wrong(
