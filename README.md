@@ -32,3 +32,9 @@ seconds with large batch=256 on a NVidia 2080 and uses about 16,000 centers of t
 python examples/image_interpolation.py tolerance=0.2 target_accuracy=0.8
 ```
 ![Image Approximation](results/NearestNeighborApproximation.png)
+
+# Language generation
+Run
+```
+python examples/language_generation.py 
+```
