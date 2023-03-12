@@ -64,9 +64,8 @@ class TextDataset(SingleTextDataset):
 
 
 def run_single_layer(cfg: DictConfig):
-    create_gutenberg_cache(parent_directory=hydra.utils.get_original_cwd())
-
     if cfg.train is True:
+        create_gutenberg_cache(parent_directory=hydra.utils.get_original_cwd())
         training_data = TextDataset(
             gutenberg_ids=cfg.gutenberg_train,
             features=cfg.num_features,
