@@ -38,3 +38,7 @@ Run
 ```
 python examples/language_generation.py 
 ```
+testing
+```
+python examples/language_generation.py train=False directory=/mnt/1000gb/deep-nearest-neighbor-py/outputs/2023-03-12/12-56-39 text_prompt="What is this about"
+```

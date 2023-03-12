@@ -7,6 +7,14 @@ tolerance: 0.01
 num_features: 10
 num_targets: 1
 
+# Related to testing
+train: True
+text_prompt: "Who are you"
+directory: null
+text_prediction_length: 100
+
 hydra:
   run:
     dir: ./outputs/${now:%Y-%m-%d}/${now:%H-%M-%S}
+  job:
+    chdir: True

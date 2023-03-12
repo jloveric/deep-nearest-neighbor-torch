@@ -56,12 +56,7 @@ def run_single_layer(cfg: DictConfig):
     )
     num_neighbors = len(layer.neighbors)
 
-    print("neighbors.device", layer.neighbors.device)
-    print("neighbor_class.device", layer.neighbor_class.device)
-
-    directory = Path(os.getcwd())
-    torch.save(layer.neighbors, str(directory / "neighbors.pt"))
-    torch.save(layer.neighbor_class, str(directory / "neighbor_classes.pt"))
+    layer.save()
 
     train_result = layer.test_loop(
         dataloader=train_dataloader,

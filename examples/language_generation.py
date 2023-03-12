@@ -8,6 +8,7 @@ from omegaconf import DictConfig, OmegaConf
 import hydra
 from deep_nearest_neighbor.layer import Layer, euclidian_distance, cosine_distance
 from deep_nearest_neighbor.networks import Network
+from deep_nearest_neighbor.utils import generate
 import os
 from pathlib import Path
 from language_interpolation.single_text_dataset import (
@@ -16,6 +17,7 @@ from language_interpolation.single_text_dataset import (
 )
 from typing import Callable, Tuple, Any, List
 from torch import Tensor
+from hydra.utils import get_original_cwd, to_absolute_path
 
 
 class TextDataset(SingleTextDataset):
@@ -59,115 +61,79 @@ class TextDataset(SingleTextDataset):
 
 
 def run_single_layer(cfg: DictConfig):
-    training_data = TextDataset(
-        gutenberg_ids=[1, 2],
-        features=cfg.num_features,
-        targets=cfg.num_targets,
-        num_workers=0,
-        transforms=None,
-    )
+    if cfg.train is True:
+        training_data = TextDataset(
+            gutenberg_ids=[1, 2],
+            features=cfg.num_features,
+            targets=cfg.num_targets,
+            num_workers=0,
+            transforms=None,
+        )
 
-    test_data = TextDataset(
-        gutenberg_ids=[3],
-        features=cfg.num_features,
-        targets=cfg.num_targets,
-        num_workers=0,
-        transforms=None,
-    )
+        test_data = TextDataset(
+            gutenberg_ids=[3],
+            features=cfg.num_features,
+            targets=cfg.num_targets,
+            num_workers=0,
+            transforms=None,
+        )
 
-    train_dataloader = DataLoader(
-        training_data,
-        batch_size=cfg.batch_size,
-        shuffle=True,
-        pin_memory=cfg.pin_memory,
-    )
-    test_dataloader = DataLoader(
-        test_data, batch_size=cfg.batch_size, shuffle=True, pin_memory=cfg.pin_memory
-    )
-    # print(f"hydra.run.dir", hydra.run.dir)
-    print(f"Current working directory : {os.getcwd()}")
-    # print(f"Orig working directory    : {get_original_cwd()}")
-    layer = Layer(
-        num_classes=128,
-        distance_metric=euclidian_distance,
-        device=cfg.device,
-        target_accuracy=cfg.target_accuracy,
-        max_neighbors=cfg.max_neighbors,
-    )
+        train_dataloader = DataLoader(
+            training_data,
+            batch_size=cfg.batch_size,
+            shuffle=True,
+            pin_memory=cfg.pin_memory,
+        )
+        test_dataloader = DataLoader(
+            test_data,
+            batch_size=cfg.batch_size,
+            shuffle=True,
+            pin_memory=cfg.pin_memory,
+        )
+        # print(f"hydra.run.dir", hydra.run.dir)
+        print(f"Current working directory : {os.getcwd()}")
+        print(f"Orig working directory    : {get_original_cwd()}")
+        layer = Layer(
+            num_classes=128,
+            distance_metric=euclidian_distance,
+            device=cfg.device,
+            target_accuracy=cfg.target_accuracy,
+            max_neighbors=cfg.max_neighbors,
+        )
 
-    layer.epoch_loop(
-        dataloader=train_dataloader,
-    )
-    num_neighbors = len(layer.neighbors)
+        layer.epoch_loop(
+            dataloader=train_dataloader,
+        )
+        num_neighbors = len(layer.neighbors)
 
-    print("neighbors.device", layer.neighbors.device)
-    print("neighbor_class.device", layer.neighbor_class.device)
+        layer.save()
 
-    directory = Path(os.getcwd())
-    torch.save(layer.neighbors, str(directory / "neighbors.pt"))
-    torch.save(layer.neighbor_class, str(directory / "neighbor_classes.pt"))
+        train_result = layer.test_loop(
+            dataloader=train_dataloader,
+        )
+        print("train_result", train_result)
 
-    train_result = layer.test_loop(
-        dataloader=train_dataloader,
-    )
-    print("train_result", train_result)
+        test_result = layer.test_loop(
+            dataloader=test_dataloader,
+        )
 
-    test_result = layer.test_loop(
-        dataloader=test_dataloader,
-    )
+        print("test_result", test_result)
+        print("neighbors in model", num_neighbors)
+    else:
+        layer = Layer(
+            num_classes=128,
+            distance_metric=euclidian_distance,
+            device=cfg.device,
+            target_accuracy=cfg.target_accuracy,
+            max_neighbors=cfg.max_neighbors,
+        )
 
-    print("test_result", test_result)
-    print("neighbors in model", num_neighbors)
+        layer.load(cfg.directory)
 
-
-def run_network(cfg: DictConfig):
-    train_dataloader = DataLoader(
-        training_data,
-        batch_size=cfg.batch_size,
-        shuffle=True,
-        pin_memory=cfg.pin_memory,
-    )
-    test_dataloader = DataLoader(
-        test_data, batch_size=cfg.batch_size, shuffle=True, pin_memory=cfg.pin_memory
-    )
-    # print(f"hydra.run.dir", hydra.run.dir)
-    print(f"Current working directory : {os.getcwd()}")
-    # print(f"Orig working directory    : {get_original_cwd()}")
-    network = Network(
-        dataloader=train_dataloader,
-        num_classes=10,
-        distance_metric=euclidian_distance,
-        device=cfg.device,
-        target_accuracy=cfg.target_accuracy,
-        max_neighbors=cfg.max_neighbors,
-    )
-
-    network.train()
-    """
-    layer.epoch_loop(
-        dataloader=train_dataloader,
-    )
-    num_neighbors = len(layer.neighbors)
-
-    print("neighbors.device", layer.neighbors.device)
-    print("neighbor_class.device", layer.neighbor_class.device)
-
-    directory = Path(os.getcwd())
-    torch.save(layer.neighbors, str(directory / "neighbors.pt"))
-    torch.save(layer.neighbor_class, str(directory / "neighbor_classes.pt"))
-
-    train_result = layer.test_loop(
-        dataloader=train_dataloader,
-    )
-    print("train_result", train_result)
-
-    test_result = layer.test_loop(
-        dataloader=test_dataloader,
-    )
-
-    print("test_result", test_result)
-    print("neighbors in model", num_neighbors)
-    """
+        result = generate(
+            model=layer, start_text=cfg.text_prompt, length=cfg.text_prediction_length
+        )
+        print("result", result)
 
 
 @hydra.main(

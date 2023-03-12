@@ -5,6 +5,8 @@ from typing import NamedTuple
 import time
 from torch import Tensor
 from enum import Enum
+from pathlib import Path
+import os
 
 
 # class syntax
@@ -79,7 +81,60 @@ def cosine_distance(
     return distances
 
 
-class Layer:
+class CommonMixin:
+    def save(self, directory: str = None):
+        if directory is None:
+            directory = os.getcwd()
+
+        torch.save(self._neighbors, str(Path(directory) / "neighbors.pt"))
+        torch.save(self._neighbor_value, str(Path(directory) / "neighbor_value.pt"))
+
+    def load(self, directory: str = None):
+        if directory is None:
+            directory = os.getcwd()
+
+        self._neighbors = torch.load(str(Path(directory) / "neighbors.pt"))
+        self._neighbor_value = torch.load(str(Path(directory) / "neighbor_value.pt"))
+
+    def __call__(self, x) -> Tensor:
+        """
+        Predict y from x
+        """
+        distances = self._distance_metric(self._neighbors, x)
+        predictions = self.predict(distances, target_value=self._neighbor_value)
+        return predictions
+
+    @property
+    def neighbors(self) -> Tensor:
+        return self._neighbors
+
+    @property
+    def neighbor_value(self) -> Tensor:
+        return self._neighbor_value
+
+    @property
+    def num_neighbors(self) -> int:
+        return self._neighbors.shape[0]
+
+    @property
+    def num_features(self) -> int:
+        return self._neighbors.shape[1]
+
+    def to(self, device):
+        self._neighbors = self._neighbors.to(device)
+        self._neighbor_value = self._neighbor_value.to(device)
+
+    def extend_neighbors(
+        self,
+        new_keys: Tensor,
+        new_class: Tensor,
+    ) -> None:
+        # print('self._neighbors.shape',self._neighbors.shape,'new_keys.shape',new_keys.shape)
+        self._neighbors = torch.cat([self._neighbors, new_keys], dim=0)
+        self._neighbor_value = torch.cat([self._neighbor_value, new_class], dim=0)
+
+
+class Layer(CommonMixin):
     def __init__(
         self,
         num_classes: int,
@@ -90,41 +145,33 @@ class Layer:
     ):
         self._distance_metric = distance_metric
         self._neighbors: torch.Tensor = None
-        self._neighbor_class: torch.Tensor = None
+        self._neighbor_value: torch.Tensor = None
         self._device = device
         self._target_accuracy = target_accuracy
         self._num_classes = num_classes
         self._max_neighbors = max_neighbors
 
-    @property
-    def neighbors(self) -> Tensor:
-        return self._neighbors
-
-    @property
-    def neighbor_class(self) -> Tensor:
-        return self._neighbor_class
-
     def predict(
         self,
         distances: Tensor,
-        target_classification: Tensor,
+        target_value: Tensor,
         style: Predictor = Predictor.Interp,
     ) -> Tensor:
         """
         :param distances: inverse distances between samples and all neighbors
-        :param target_classification: classification of each neighbor
+        :param target_value: classification of each neighbor
         :param style: style of prediction (nearest neighbor, all sum)
         :returns: predicted classification for each sample
         """
         if style == Predictor.Nearest:
             nearest_neighbor = torch.argmax(distances, dim=1)
-            predicted_classification = target_classification[nearest_neighbor]
+            predicted_classification = target_value[nearest_neighbor]
         elif style == Predictor.Interp:
             predicted_classification = 0
             predicted_sum = 0
             for i in range(self._num_classes):
-                indexes = (target_classification.flatten() == i).nonzero().squeeze()
-                # print("target_classification", target_classification)
+                indexes = (target_value.flatten() == i).nonzero().squeeze()
+                # print("target_value", target_value)
 
                 # TODO: When numel is one 1 I lose a dimension and stuff breaks. Figure out
                 # a better approach here.
@@ -151,20 +198,20 @@ class Layer:
     def incorrect_predictions(
         self,
         distances: Tensor,
-        target_classification: Tensor,
+        target_value: Tensor,
         sample_classification: Tensor,
     ) -> Tensor:
         """
         Compute the sample classifications that did not match the predicted
         classifications.  Return the indices that were computed incorrectly
         :param distance: Distances from each of the neighbors
-        :param target_classification: The classification for each of those neighbors
+        :param target_value: The classification for each of those neighbors
         :param sample_classification: The classification for each of the samples
         """
         # nearest_neighbor = torch.argmin(distances, dim=1)
-        # predicted_classification = target_classification[nearest_neighbor]
+        # predicted_classification = target_value[nearest_neighbor]
         predicted_classification = self.predict(
-            distances=distances, target_classification=target_classification
+            distances=distances, target_value=target_value
         )
 
         all = predicted_classification == sample_classification
@@ -173,14 +220,6 @@ class Layer:
             wrong_indices = wrong_indices.unsqueeze(dim=0)
 
         return wrong_indices
-
-    def extend_neighbors(
-        self,
-        new_keys: Tensor,
-        new_class: Tensor,
-    ) -> None:
-        self._neighbors = torch.cat([self._neighbors, new_keys], dim=0)
-        self._neighbor_class = torch.cat([self._neighbor_class, new_class], dim=0)
 
     def train_loop(
         self,
@@ -198,7 +237,7 @@ class Layer:
 
             wrong_indices = self.incorrect_predictions(
                 distances=distances,
-                target_classification=self._neighbor_class,
+                target_value=self._neighbor_value,
                 sample_classification=sample_class,
             )
 
@@ -212,19 +251,19 @@ class Layer:
                 keys=self._neighbors, values=samples
             )
             final_predictions = self.predict(
-                distances=final_distances, target_classification=self._neighbor_class
+                distances=final_distances, target_value=self._neighbor_value
             )
             how_good = final_predictions == sample_class
 
             result = torch.sum(how_good) / how_good.shape[0]
             count += 1
 
-        return self._neighbors, self._neighbor_class
+        return self._neighbors, self._neighbor_value
 
     def test_wrong(
         self,
         neighbors: Tensor,
-        neighbor_class: Tensor,
+        neighbor_value: Tensor,
         samples: Tensor,
         sample_class: Tensor,
     ) -> int:
@@ -236,7 +275,7 @@ class Layer:
 
         wrong_indices = self.incorrect_predictions(
             distances=distances,
-            target_classification=neighbor_class,
+            target_value=neighbor_value,
             sample_classification=sample_class,
         )
 
@@ -255,7 +294,7 @@ class Layer:
             datapoints += len(x)
             wrong += self.test_wrong(
                 neighbors=self._neighbors,
-                neighbor_class=self._neighbor_class,
+                neighbor_value=self._neighbor_value,
                 samples=x,
                 sample_class=y,
             )
@@ -277,15 +316,15 @@ class Layer:
             # Set the neighbors to the first batch
             x, y = next(data_iter)
             self._neighbors = x
-            self._neighbor_class = y.flatten()
+            self._neighbor_value = y.flatten()
             # print(
             #    "creating first batch",
             #    self._neighbors.shape,
-            #    self._neighbor_class.shape,
+            #    self._neighbor_value.shape,
             # )
 
         self._neighbors = self._neighbors.to(self._device)
-        self._neighbor_class = self._neighbor_class.to(self._device)
+        self._neighbor_value = self._neighbor_value.to(self._device)
         t_start = time.perf_counter()
         for count, data in enumerate(pbar := tqdm(data_iter)):
             pbar.set_postfix({"neighbors": len(self._neighbors)})
@@ -295,7 +334,7 @@ class Layer:
             y = y.to(self._device).flatten()
             # print("x", x.shape, "y", y.shape)
             # print("x", x, "y", y)
-            self._neighbors, self._neighbor_class = self.train_loop(
+            self._neighbors, self._neighbor_value = self.train_loop(
                 samples=x,
                 sample_class=y,
                 target_accuracy=self._target_accuracy,
@@ -304,17 +343,10 @@ class Layer:
         print(f"Epoch_loop time {t_total}")
         print(f"Network neighbors {len(self._neighbors)}")
 
-        return self._neighbors, self._neighbor_class
-
-    def __call__(self, x):
-        """
-        This does not make a prediction, just gives distances to each neighbor, so
-        it's a new set of features similar to what happens in a neural network.
-        """
-        return self._distance_metric(self._neighbors, x)
+        return self._neighbors, self._neighbor_value
 
 
-class RegressionLayer:
+class RegressionLayer(CommonMixin):
     def __init__(
         self,
         distance_metric=euclidian_distance,
@@ -331,18 +363,6 @@ class RegressionLayer:
         self._max_neighbors = max_neighbors
         self._tolerance = tolerance
 
-    def to(self, device):
-        self._neighbors = self._neighbors.to(device)
-        self._neighbor_value = self._neighbor_value.to(device)
-
-    @property
-    def neighbors(self) -> Tensor:
-        return self._neighbors
-
-    @property
-    def neighbor_value(self) -> Tensor:
-        return self._neighbor_value
-
     def predict(
         self,
         distances: Tensor,
@@ -350,7 +370,7 @@ class RegressionLayer:
     ) -> Tensor:
         """
         :param distances: inverse distances between samples and all neighbors
-        :param target_classification: classification of each neighbor
+        :param target_value: classification of each neighbor
         :param style: style of prediction (nearest neighbor, all sum)
         :returns: predicted classification for each sample
         """
@@ -372,7 +392,7 @@ class RegressionLayer:
         Compute the sample classifications that did not match the predicted
         classifications.  Return the indices that were computed incorrectly
         :param distance: Distances from each of the neighbors
-        :param target_classification: The classification for each of those neighbors
+        :param target_value: The classification for each of those neighbors
         :param sample_classification: The classification for each of the samples
         """
 
@@ -391,15 +411,6 @@ class RegressionLayer:
             wrong_indices = wrong_indices.unsqueeze(dim=0)
 
         return wrong_indices
-
-    def extend_neighbors(
-        self,
-        new_keys: Tensor,
-        new_class: Tensor,
-    ) -> None:
-        # print('self._neighbors.shape',self._neighbors.shape,'new_keys.shape',new_keys.shape)
-        self._neighbors = torch.cat([self._neighbors, new_keys], dim=0)
-        self._neighbor_value = torch.cat([self._neighbor_value, new_class], dim=0)
 
     def train_loop(
         self,
@@ -503,7 +514,7 @@ class RegressionLayer:
             # print(
             #    "creating first batch",
             #    self._neighbors.shape,
-            #    self._neighbor_class.shape,
+            #    self._neighbor_value.shape,
             # )
 
         self._neighbors = self._neighbors.to(self._device)
@@ -526,11 +537,3 @@ class RegressionLayer:
         print(f"Network neighbors {len(self._neighbors)}")
 
         return self._neighbors, self._neighbor_value
-
-    def __call__(self, x):
-        """
-        Predict y from x
-        """
-        distances = self._distance_metric(self._neighbors, x)
-        predictions = self.predict(distances, target_value=self._neighbor_value)
-        return predictions
