@@ -10,6 +10,7 @@ from deep_nearest_neighbor.layer import Layer, euclidian_distance, cosine_distan
 from deep_nearest_neighbor.networks import Network
 import os
 from pathlib import Path
+from hydra.utils import get_original_cwd, to_absolute_path
 
 
 class TransformFlat:
@@ -21,16 +22,20 @@ class TransformFlat:
         return data
 
 
-training_data = datasets.MNIST(
-    root="data", train=True, download=True, transform=TransformFlat()
-)
-
-test_data = datasets.MNIST(
-    root="data", train=False, download=True, transform=TransformFlat()
-)
-
-
 def run_single_layer(cfg: DictConfig):
+    mnist_data_path = str(Path(get_original_cwd()) / "data")
+
+    training_data = datasets.MNIST(
+        root=mnist_data_path,
+        train=True,
+        download=True,
+        transform=TransformFlat(),
+    )
+
+    test_data = datasets.MNIST(
+        root=mnist_data_path, train=False, download=True, transform=TransformFlat()
+    )
+
     train_dataloader = DataLoader(
         training_data,
         batch_size=cfg.batch_size,
@@ -72,6 +77,19 @@ def run_single_layer(cfg: DictConfig):
 
 
 def run_network(cfg: DictConfig):
+    mnist_data_path = str(Path(get_original_cwd()) / "data")
+
+    training_data = datasets.MNIST(
+        root=mnist_data_path,
+        train=True,
+        download=True,
+        transform=TransformFlat(),
+    )
+
+    test_data = datasets.MNIST(
+        root=mnist_data_path, train=False, download=True, transform=TransformFlat()
+    )
+
     train_dataloader = DataLoader(
         training_data,
         batch_size=cfg.batch_size,
@@ -123,8 +141,10 @@ def run_network(cfg: DictConfig):
 
 @hydra.main(config_path="../config", config_name="mnist", version_base="1.3")
 def run(cfg: DictConfig):
-    run_single_layer(cfg=cfg)
-    # run_network(cfg=cfg)
+    if cfg.train_network is False:
+        run_single_layer(cfg=cfg)
+    else:
+        run_network(cfg=cfg)
 
 
 if __name__ == "__main__":

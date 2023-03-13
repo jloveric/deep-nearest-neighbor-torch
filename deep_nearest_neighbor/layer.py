@@ -1,7 +1,7 @@
 import torch
 from torch.utils.data import DataLoader
 from tqdm import tqdm
-from typing import NamedTuple
+from typing import NamedTuple, Tuple, Union
 import time
 from torch import Tensor
 from enum import Enum
@@ -96,7 +96,7 @@ class CommonMixin:
         self._neighbors = torch.load(str(Path(directory) / "neighbors.pt"))
         self._neighbor_value = torch.load(str(Path(directory) / "neighbor_value.pt"))
 
-    def __call__(self, x) -> Tensor:
+    def __call__(self, x) -> Union[Tensor, Tuple[Tensor, Tensor]]:
         """
         Predict y from x
         """
@@ -156,19 +156,25 @@ class Layer(CommonMixin):
         distances: Tensor,
         target_value: Tensor,
         style: Predictor = Predictor.Interp,
-    ) -> Tensor:
+    ) -> Tuple[Tensor, Tensor]:
         """
         :param distances: inverse distances between samples and all neighbors
         :param target_value: classification of each neighbor
         :param style: style of prediction (nearest neighbor, all sum)
         :returns: predicted classification for each sample
         """
+
+        probabilities = torch.zeros(distances.shape[0], self._num_classes)
+
         if style == Predictor.Nearest:
             nearest_neighbor = torch.argmax(distances, dim=1)
             predicted_classification = target_value[nearest_neighbor]
+            probabilities[:, predicted_classification] = 1.0
         elif style == Predictor.Interp:
             predicted_classification = 0
             predicted_sum = 0
+
+            # TODO: Figure out how to do this without the for loop
             for i in range(self._num_classes):
                 indexes = (target_value.flatten() == i).nonzero().squeeze()
                 # print("target_value", target_value)
@@ -190,10 +196,19 @@ class Layer(CommonMixin):
                     predicted_sum = torch.where(
                         predicted_sum > this_sum, predicted_sum, this_sum
                     )
+
                     predicted_classification = torch.where(
                         predicted_sum > this_sum, predicted_classification, i
                     )
-        return predicted_classification
+                    probabilities[:, i] = this_sum
+                else:
+                    probabilities[:, i] = 0
+
+                probabilities = probabilities / torch.linalg.norm(
+                    probabilities, ord=1, dim=1
+                ).view(-1, 1)
+
+        return predicted_classification, probabilities
 
     def incorrect_predictions(
         self,
@@ -210,7 +225,7 @@ class Layer(CommonMixin):
         """
         # nearest_neighbor = torch.argmin(distances, dim=1)
         # predicted_classification = target_value[nearest_neighbor]
-        predicted_classification = self.predict(
+        predicted_classification, probabilities = self.predict(
             distances=distances, target_value=target_value
         )
 
@@ -250,7 +265,7 @@ class Layer(CommonMixin):
             final_distances = self._distance_metric(
                 keys=self._neighbors, values=samples
             )
-            final_predictions = self.predict(
+            final_predictions, probabilities = self.predict(
                 distances=final_distances, target_value=self._neighbor_value
             )
             how_good = final_predictions == sample_class

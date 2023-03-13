@@ -27,16 +27,6 @@ class ForwardLoader:
 
     def __iter__(self):
         return self
-        """
-        for data in self._loader_iter:
-            x, y = data
-            x = x.to(self._device)
-            y = y.to(self._device)
-            for layer_index in range(self._layer_index):
-                print("loading layer", layer_index)
-                x = self._network._layer_list[layer_index](x)
-            yield x, y
-        """
 
     def __next__(self):
         x, y = next(self._loader_iter)
@@ -44,7 +34,7 @@ class ForwardLoader:
         y = y.to(self._device)
         for layer_index in range(self._layer_index):
             # print("loading layer", layer_index)
-            x = self._network._layer_list[layer_index](x)
+            p, x = self._network._layer_list[layer_index](x)
         return x, y
 
 
@@ -63,12 +53,14 @@ class Network:
             distance_metric=euclidian_distance,
             device=device,
             target_accuracy=target_accuracy,
+            max_neighbors=max_neighbors,
         )
         self.layer2 = Layer(
             num_classes=num_classes,
             distance_metric=euclidian_distance,
             device=device,
             target_accuracy=target_accuracy,
+            max_neighbors=max_neighbors,
         )
         self._device = device
         self._layer_list = [self.layer1, self.layer2]
@@ -116,4 +108,4 @@ class Network:
                 layer_index=count,
                 device=self._device,
             )
-            layer.epoch_loop(dataloader=dataloader, max_neighbors=self._max_neighbors)
+            layer.epoch_loop(dataloader=dataloader)
