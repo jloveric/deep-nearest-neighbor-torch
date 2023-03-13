@@ -15,6 +15,7 @@ from deep_nearest_neighbor.layer import (
     RegressionLayer,
     EuclidianDistance,
     cosine_distance,
+    InfluenceCone
 )
 from deep_nearest_neighbor.networks import Network
 import os
@@ -48,7 +49,8 @@ def run_single_layer(cfg: DictConfig):
     print(f"Current working directory : {os.getcwd()}")
     # print(f"Orig working directory    : {get_original_cwd()}")
     layer = RegressionLayer(
-        distance_metric=EuclidianDistance(epsilon=cfg.epsilon, exponent=cfg.exponent),
+        distance_metric=InfluenceCone(epsilon=cfg.epsilon, exponent=cfg.exponent, factor=4),
+        #distance_metric=EuclidianDistance(epsilon=cfg.epsilon, exponent=cfg.exponent),
         device=cfg.device,
         target_accuracy=cfg.target_accuracy,
         max_neighbors=cfg.max_neighbors,

@@ -27,8 +27,12 @@ class Results(NamedTuple):
     total: int
 
 
-def euclidian_distance(
-    keys: Tensor, values: Tensor, epsilon: float = 1e-3, exponent: float = 4.0
+def influence_cone(
+    keys: Tensor,
+    values: Tensor,
+    epsilon: float = 1e-3,
+    exponent: float = 4.0,
+    factor: float = 2.0,
 ) -> Tensor:
     """
     Compute the inverse distance from each of the neighbors and store that
@@ -40,7 +44,48 @@ def euclidian_distance(
     """
 
     delta = values.unsqueeze(1) - keys
-    distance = 1 / torch.pow((torch.linalg.norm(delta, dim=2) + epsilon), exponent)
+    distance = torch.linalg.norm(delta, dim=2) + epsilon
+
+    # Get the minimum distances
+    min_dist, _ = torch.min(distance, dim=1)
+    min_dist = min_dist.view(-1,1)
+    #print('min_dist', min_dist.shape)
+    #print('distance', distance.shape)
+    cone = torch.clamp(-distance + 2.0 * min_dist, min=0)
+
+    return cone
+
+
+class InfluenceCone:
+    def __init__(self, epsilon: float = 1e-3, exponent: float = 2, factor: float = 2):
+        self._epsilon = epsilon
+        self._exponent = exponent
+        self._factor = factor
+
+    def __call__(self, keys: Tensor, values: Tensor):
+        return influence_cone(
+            keys=keys,
+            values=values,
+            epsilon=self._epsilon,
+            exponent=self._exponent,
+            factor=self._factor,
+        )
+
+
+def euclidian_distance(
+    keys: Tensor, values: Tensor, epsilon: float = 1e-3, exponent: float = -4.0
+) -> Tensor:
+    """
+    Compute the inverse distance from each of the neighbors and store that
+    in the returning vector.
+    :param keys: tensor containing all neighbors
+    :param values: tensor containing all samples
+    :param epsilon: factor so the inverse doesn't become infinite
+    :return: inverse distance between keys and values
+    """
+
+    delta = values.unsqueeze(1) - keys
+    distance = torch.pow((torch.linalg.norm(delta, dim=2) + epsilon), exponent)
     # print("distance", distance)
     # distance = torch.nan_to_num(
     #    torch.nn.functional.normalize(distance, dim=1), nan=0.0, posinf=1.0
@@ -52,7 +97,7 @@ def euclidian_distance(
 
 
 class EuclidianDistance:
-    def __init__(self, epsilon: float = 1e-3, exponent: float = 2):
+    def __init__(self, epsilon: float = 1e-3, exponent: float = -2):
         self._epsilon = epsilon
         self._exponent = exponent
 
