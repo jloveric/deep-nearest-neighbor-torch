@@ -15,7 +15,7 @@ from deep_nearest_neighbor.layer import (
     RegressionLayer,
     EuclidianDistance,
     cosine_distance,
-    InfluenceCone
+    InfluenceCone,
 )
 from deep_nearest_neighbor.networks import Network
 import os
@@ -48,9 +48,18 @@ def run_single_layer(cfg: DictConfig):
     # print(f"hydra.run.dir", hydra.run.dir)
     print(f"Current working directory : {os.getcwd()}")
     # print(f"Orig working directory    : {get_original_cwd()}")
+    distance_metric = None
+    if cfg.kernel_type == "influence_cone":
+        distance_metric = InfluenceCone(
+            epsilon=cfg.epsilon, exponent=cfg.exponent, factor=cfg.influence_cone_factor
+        )
+    else:
+        distance_metric = (
+            EuclidianDistance(epsilon=cfg.epsilon, exponent=cfg.exponent),
+        )
+
     layer = RegressionLayer(
-        distance_metric=InfluenceCone(epsilon=cfg.epsilon, exponent=cfg.exponent, factor=4),
-        #distance_metric=EuclidianDistance(epsilon=cfg.epsilon, exponent=cfg.exponent),
+        distance_metric=distance_metric,
         device=cfg.device,
         target_accuracy=cfg.target_accuracy,
         max_neighbors=cfg.max_neighbors,

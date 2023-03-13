@@ -12,6 +12,10 @@ epsilon: 1e-6
 # distance raised to the inverse to the -exponent
 exponent: 6
 
+influence_cone_factor: 4
+kernel_type : 'influence_cone' # euclidean
+
+
 hydra:
   run:
     dir: ./outputs/${now:%Y-%m-%d}/${now:%H-%M-%S}
