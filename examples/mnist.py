@@ -99,9 +99,7 @@ def run_network(cfg: DictConfig):
     test_dataloader = DataLoader(
         test_data, batch_size=cfg.batch_size, shuffle=True, pin_memory=cfg.pin_memory
     )
-    # print(f"hydra.run.dir", hydra.run.dir)
-    print(f"Current working directory : {os.getcwd()}")
-    # print(f"Orig working directory    : {get_original_cwd()}")
+
     network = Network(
         dataloader=train_dataloader,
         num_classes=10,
@@ -112,31 +110,18 @@ def run_network(cfg: DictConfig):
     )
 
     network.train()
-    """
-    layer.epoch_loop(
-        dataloader=train_dataloader,
-    )
-    num_neighbors = len(layer.neighbors)
 
-    print("neighbors.device", layer.neighbors.device)
-    print("neighbor_class.device", layer.neighbor_class.device)
-
-    directory = Path(os.getcwd())
-    torch.save(layer.neighbors, str(directory / "neighbors.pt"))
-    torch.save(layer.neighbor_class, str(directory / "neighbor_classes.pt"))
-
-    train_result = layer.test_loop(
+    train_result = network.test_loop(
         dataloader=train_dataloader,
     )
     print("train_result", train_result)
 
-    test_result = layer.test_loop(
+    test_result = network.test_loop(
         dataloader=test_dataloader,
     )
 
     print("test_result", test_result)
-    print("neighbors in model", num_neighbors)
-    """
+    # print("neighbors in model", num_neighbors)
 
 
 @hydra.main(config_path="../config", config_name="mnist", version_base="1.3")
