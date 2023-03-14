@@ -112,3 +112,18 @@ class Network:
                 device=self._device,
             )
             layer.epoch_loop(dataloader=dataloader)
+
+    def test_loop(self, dataloader) :
+        results = []
+        for count, layer in enumerate(self._layer_list):
+            print(f"test layer {count}")
+            forward_loader = ForwardLoader(
+                network=self,
+                dataloader=dataloader,
+                layer_index=count,
+                device=self._device,
+            )
+            result = layer.test_loop(dataloader=forward_loader)
+            results.append(result)
+        
+        return results

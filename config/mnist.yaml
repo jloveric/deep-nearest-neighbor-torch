@@ -2,7 +2,7 @@ target_accuracy: 0.95
 device: cuda
 pin_memory: True
 batch_size: 64
-max_neighbors: 1000
+max_neighbors: 100000
 train_network: True
 
 hydra:
