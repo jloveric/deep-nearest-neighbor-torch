@@ -50,14 +50,14 @@ class Network:
     ):
         self.layer1 = Layer(
             num_classes=num_classes,
-            distance_metric=euclidian_distance,
+            distance_metric=distance_metric,
             device=device,
             target_accuracy=target_accuracy,
             max_neighbors=max_neighbors,
         )
         self.layer2 = Layer(
             num_classes=num_classes,
-            distance_metric=euclidian_distance,
+            distance_metric=distance_metric,
             device=device,
             target_accuracy=target_accuracy,
             max_neighbors=max_neighbors,
@@ -66,6 +66,9 @@ class Network:
         self._layer_list = [self.layer1, self.layer2]
         self.dataloader = dataloader
         self._max_neighbors = max_neighbors
+
+    def layer(self, i: int) -> Layer:
+        return self._layer_list[i]
 
     def forward(self, x: Tensor, to_index: int):
         out = x.to(self._device)

@@ -110,6 +110,7 @@ def run_network(cfg: DictConfig):
     )
 
     network.train()
+    
 
     train_result = network.test_loop(
         dataloader=train_dataloader,
