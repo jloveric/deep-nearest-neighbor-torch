@@ -110,19 +110,21 @@ def run_network(cfg: DictConfig):
     )
 
     network.train()
+
+    print("")
     print(network.layer(1).num_neighbors, network.layer(1).num_features)
 
     train_result = network.test_loop(
         dataloader=train_dataloader,
     )
+    print("")
     print("train_result", train_result)
 
     test_result = network.test_loop(
         dataloader=test_dataloader,
     )
-
+    print("")
     print("test_result", test_result)
-    # print("neighbors in model", num_neighbors)
 
 
 @hydra.main(config_path="../config", config_name="mnist", version_base="1.3")
