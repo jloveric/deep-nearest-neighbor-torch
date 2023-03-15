@@ -31,16 +31,31 @@ class TransformFlat:
 def run_single_layer(cfg: DictConfig):
     mnist_data_path = str(Path(get_original_cwd()) / "data")
 
-    training_data = datasets.MNIST(
-        root=mnist_data_path,
-        train=True,
-        download=True,
-        transform=TransformFlat(),
-    )
+    num_classes = None
+    if cfg.data == "mnist":
+        num_classes = 10
+        training_data = datasets.MNIST(
+            root=mnist_data_path,
+            train=True,
+            download=True,
+            transform=TransformFlat(),
+        )
 
-    test_data = datasets.MNIST(
-        root=mnist_data_path, train=False, download=True, transform=TransformFlat()
-    )
+        test_data = datasets.MNIST(
+            root=mnist_data_path, train=False, download=True, transform=TransformFlat()
+        )
+    elif cfg.data == "cifar100":
+        num_classes = 100
+        training_data = datasets.CIFAR100(
+            root=mnist_data_path,
+            train=True,
+            download=True,
+            transform=TransformFlat(),
+        )
+
+        test_data = datasets.CIFAR100(
+            root=mnist_data_path, train=False, download=True, transform=TransformFlat()
+        )
 
     train_dataloader = DataLoader(
         training_data,
@@ -56,7 +71,7 @@ def run_single_layer(cfg: DictConfig):
     # print(f"Orig working directory    : {get_original_cwd()}")
     layer = Layer(
         num_classes=10,
-        #distance_metric=InfluenceCone(epsilon=1e-6, exponent=2, factor=4),
+        # distance_metric=InfluenceCone(epsilon=1e-6, exponent=2, factor=4),
         distance_metric=EuclidianDistance(epsilon=1e-6, exponent=-4),
         device=cfg.device,
         target_accuracy=cfg.target_accuracy,
@@ -134,7 +149,7 @@ def run_network(cfg: DictConfig):
     print("test_result", test_result)
 
 
-@hydra.main(config_path="../config", config_name="mnist", version_base="1.3")
+@hydra.main(config_path="../config", config_name="invariant_image_classification", version_base="1.3")
 def run(cfg: DictConfig):
     if cfg.train_network is False:
         run_single_layer(cfg=cfg)

@@ -1,3 +1,4 @@
+data: cifar100 #mnist
 target_accuracy: 0.95
 device: cuda
 pin_memory: True
