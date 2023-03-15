@@ -6,7 +6,13 @@ import matplotlib.pyplot as plt
 from torch.utils.data import DataLoader
 from omegaconf import DictConfig, OmegaConf
 import hydra
-from deep_nearest_neighbor.layer import Layer, euclidian_distance, cosine_distance
+from deep_nearest_neighbor.layer import (
+    Layer,
+    euclidian_distance,
+    cosine_distance,
+    InfluenceCone,
+    EuclidianDistance,
+)
 from deep_nearest_neighbor.networks import Network
 import os
 from pathlib import Path
@@ -50,7 +56,8 @@ def run_single_layer(cfg: DictConfig):
     # print(f"Orig working directory    : {get_original_cwd()}")
     layer = Layer(
         num_classes=10,
-        distance_metric=euclidian_distance,
+        #distance_metric=InfluenceCone(epsilon=1e-6, exponent=2, factor=4),
+        distance_metric=EuclidianDistance(epsilon=1e-6, exponent=-4),
         device=cfg.device,
         target_accuracy=cfg.target_accuracy,
         max_neighbors=cfg.max_neighbors,
