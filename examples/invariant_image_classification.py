@@ -70,7 +70,7 @@ def run_single_layer(cfg: DictConfig):
     print(f"Current working directory : {os.getcwd()}")
     # print(f"Orig working directory    : {get_original_cwd()}")
     layer = Layer(
-        num_classes=10,
+        num_classes=num_classes,
         # distance_metric=InfluenceCone(epsilon=1e-6, exponent=2, factor=4),
         distance_metric=EuclidianDistance(epsilon=1e-6, exponent=-4),
         device=cfg.device,
