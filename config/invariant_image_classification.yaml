@@ -5,6 +5,7 @@ pin_memory: True
 batch_size: 64
 max_neighbors: 100000
 train_network: True
+max_count: 3
 
 hydra:
   run:

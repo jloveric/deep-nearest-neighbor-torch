@@ -76,6 +76,7 @@ def run_single_layer(cfg: DictConfig):
         device=cfg.device,
         target_accuracy=cfg.target_accuracy,
         max_neighbors=cfg.max_neighbors,
+        max_count=cfg.max_count,
     )
 
     layer.epoch_loop(
@@ -129,6 +130,7 @@ def run_network(cfg: DictConfig):
         device=cfg.device,
         target_accuracy=cfg.target_accuracy,
         max_neighbors=cfg.max_neighbors,
+        max_count=cfg.max_count,
     )
 
     network.train()
@@ -149,7 +151,11 @@ def run_network(cfg: DictConfig):
     print("test_result", test_result)
 
 
-@hydra.main(config_path="../config", config_name="invariant_image_classification", version_base="1.3")
+@hydra.main(
+    config_path="../config",
+    config_name="invariant_image_classification",
+    version_base="1.3",
+)
 def run(cfg: DictConfig):
     if cfg.train_network is False:
         run_single_layer(cfg=cfg)

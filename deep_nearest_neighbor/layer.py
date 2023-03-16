@@ -48,9 +48,9 @@ def influence_cone(
 
     # Get the minimum distances
     min_dist, _ = torch.min(distance, dim=1)
-    min_dist = min_dist.view(-1,1)
-    #print('min_dist', min_dist.shape)
-    #print('distance', distance.shape)
+    min_dist = min_dist.view(-1, 1)
+    # print('min_dist', min_dist.shape)
+    # print('distance', distance.shape)
     cone = torch.clamp(-distance + 2.0 * min_dist, min=0)
 
     return cone
@@ -187,6 +187,7 @@ class Layer(CommonMixin):
         device: str = "cuda",
         target_accuracy: float = 0.9,
         max_neighbors: int = float("inf"),
+        max_count: int = 3,
     ):
         self._distance_metric = distance_metric
         self._neighbors: torch.Tensor = None
@@ -195,6 +196,7 @@ class Layer(CommonMixin):
         self._target_accuracy = target_accuracy
         self._num_classes = num_classes
         self._max_neighbors = max_neighbors
+        self._max_count = max_count
 
     def predict(
         self,
@@ -289,8 +291,10 @@ class Layer(CommonMixin):
     ):
         result = 0
         count = 0
-        while (result < target_accuracy) and (
-            len(self._neighbors) <= self._max_neighbors
+        while (
+            (result < target_accuracy)
+            and (len(self._neighbors) <= self._max_neighbors)
+            and (count < self._max_count)
         ):
             # print("result", result, "count", count)
             distances = self._distance_metric(keys=self._neighbors, values=samples)
