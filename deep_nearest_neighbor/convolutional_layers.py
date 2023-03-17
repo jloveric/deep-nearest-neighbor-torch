@@ -1,6 +1,11 @@
-from deep_nearest_neighbor.layer import CommonMixin
+from deep_nearest_neighbor.layer import CommonMixin, Predictor, Results
 import torch
 from torch import Tensor
+from typing import Tuple
+from tqdm import tqdm
+import time
+from torch.utils.data import DataLoader
+
 
 class ConvolutionalLayer2d(CommonMixin):
     def __init__(
@@ -11,6 +16,7 @@ class ConvolutionalLayer2d(CommonMixin):
         target_accuracy: float = 0.9,
         max_neighbors: int = float("inf"),
         max_count: int = 3,
+        kernel_size: int = 3,
     ):
         self._distance_metric = distance_metric
         self._neighbors: torch.Tensor = None
@@ -20,6 +26,7 @@ class ConvolutionalLayer2d(CommonMixin):
         self._num_classes = num_classes
         self._max_neighbors = max_neighbors
         self._max_count = max_count
+        self._kernel_size = kernel_size
 
     def predict(
         self,
@@ -215,12 +222,14 @@ class ConvolutionalLayer2d(CommonMixin):
         t_start = time.perf_counter()
         for count, data in enumerate(pbar := tqdm(data_iter)):
             pbar.set_postfix({"neighbors": len(self._neighbors)})
-            # print("count", count)
             x, y = data
-            x = x.to(self._device)
+
+            # convert [N, C, X, Y] to [N, C*kernel_size*kernel_size, (x-kernel_size+1)*(y-kernel_size+1)]
+            x = torch.nn.functional.unfold(
+                x.to(self._device), kernel_size=self._kernel_size
+            )
             y = y.to(self._device).flatten()
-            # print("x", x.shape, "y", y.shape)
-            # print("x", x, "y", y)
+
             self._neighbors, self._neighbor_value = self.train_loop(
                 samples=x,
                 sample_class=y,
