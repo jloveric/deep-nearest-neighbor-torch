@@ -81,7 +81,8 @@ def euclidian_pyramid_distance(
 ) -> Tensor:
     """
     Compute distances based off of a pyramid, first at full scale, then half
-    then quarter...
+    then quarter... This is a 1 dimensional pyramid, not the typical 2d pyramid
+    used in image problems.
     :param keys: tensor containing all neighbors
     :param values: tensor containing all samples
     :param epsilon: factor so the inverse doesn't become infinite
