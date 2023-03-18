@@ -6,9 +6,8 @@ import matplotlib.pyplot as plt
 from torch.utils.data import DataLoader
 from omegaconf import DictConfig, OmegaConf
 import hydra
-from deep_nearest_neighbor.layer import (
-    Layer,
-    euclidian_distance,
+from deep_nearest_neighbor.layer import Layer
+from deep_nearest_neighbor.metrics import (
     CosineDistance,
     InfluenceCone,
     EuclidianDistance,

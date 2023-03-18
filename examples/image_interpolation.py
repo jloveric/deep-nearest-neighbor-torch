@@ -11,12 +11,12 @@ from deep_nearest_neighbor.single_image_dataset import (
     image_to_dataset,
     image,
 )
-from deep_nearest_neighbor.layer import (
-    RegressionLayer,
-    EuclidianDistance,
-    EuclidianPyramidDistance,
+from deep_nearest_neighbor.layer import RegressionLayer
+from deep_nearest_neighbor.metrics import (
     CosineDistance,
     InfluenceCone,
+    EuclidianDistance,
+    EuclidianPyramidDistance,
 )
 from deep_nearest_neighbor.networks import Network
 import os
