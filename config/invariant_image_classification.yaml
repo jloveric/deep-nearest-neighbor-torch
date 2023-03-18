@@ -4,7 +4,7 @@ device: cuda
 pin_memory: True
 batch_size: 64
 max_neighbors: 100000
-train_network: True
+train_network: False
 max_count: 3
 kernel_type: "euclidian_pyramid"
 epsilon: 1e-6

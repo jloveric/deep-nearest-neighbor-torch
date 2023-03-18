@@ -3,3 +3,4 @@ data/
 outputs/
 texts/
 gutenberg/
+poetry.lock

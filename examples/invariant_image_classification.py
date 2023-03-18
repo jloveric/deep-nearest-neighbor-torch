@@ -77,9 +77,7 @@ def run_single_layer(cfg: DictConfig):
             epsilon=cfg.epsilon, exponent=cfg.exponent, scales=cfg.scales
         )
     else:
-        distance_metric = (
-            EuclidianDistance(epsilon=cfg.epsilon, exponent=cfg.exponent),
-        )
+        distance_metric = EuclidianDistance(epsilon=cfg.epsilon, exponent=cfg.exponent)
 
     # print(f"hydra.run.dir", hydra.run.dir)
     print(f"Current working directory : {os.getcwd()}")
