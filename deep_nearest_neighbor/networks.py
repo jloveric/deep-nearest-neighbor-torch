@@ -35,6 +35,7 @@ class ForwardLoader:
         for layer_index in range(self._layer_index):
             # print("loading layer", layer_index)
             p, x = self._network._layer_list[layer_index](x)
+            print("p.shape", p.shape, "x.shape", x.shape)
         return x, y
 
 
@@ -113,7 +114,7 @@ class Network:
             )
             layer.epoch_loop(dataloader=dataloader)
 
-    def test_loop(self, dataloader) :
+    def test_loop(self, dataloader):
         results = []
         for count, layer in enumerate(self._layer_list):
             print(f"test layer {count}")
@@ -125,5 +126,5 @@ class Network:
             )
             result = layer.test_loop(dataloader=forward_loader)
             results.append(result)
-        
+
         return results

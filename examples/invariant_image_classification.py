@@ -29,7 +29,7 @@ class TransformFlat:
         return data
 
 
-def run_single_layer(cfg: DictConfig):
+def choose_dataset(cfg: DictConfig):
     mnist_data_path = str(Path(get_original_cwd()) / "data")
 
     num_classes = None
@@ -70,16 +70,10 @@ def run_single_layer(cfg: DictConfig):
             root=mnist_data_path, train=False, download=True, transform=TransformFlat()
         )
 
-    train_dataloader = DataLoader(
-        training_data,
-        batch_size=cfg.batch_size,
-        shuffle=True,
-        pin_memory=cfg.pin_memory,
-    )
-    test_dataloader = DataLoader(
-        test_data, batch_size=cfg.batch_size, shuffle=True, pin_memory=cfg.pin_memory
-    )
+    return training_data, test_data, num_classes
 
+
+def choose_metric(cfg: DictConfig):
     if cfg.kernel_type == "influence_cone":
         distance_metric = InfluenceCone(
             epsilon=cfg.epsilon, exponent=cfg.exponent, factor=cfg.influence_cone_factor
@@ -92,6 +86,23 @@ def run_single_layer(cfg: DictConfig):
         distance_metric = CosineDistance(epsilon=cfg.epsilon, exponent=cfg.exponent)
     else:
         distance_metric = EuclidianDistance(epsilon=cfg.epsilon, exponent=cfg.exponent)
+
+    return distance_metric
+
+
+def run_single_layer(cfg: DictConfig):
+    training_data, test_data, num_classes = choose_dataset(cfg=cfg)
+    distance_metric = choose_metric(cfg)
+
+    train_dataloader = DataLoader(
+        training_data,
+        batch_size=cfg.batch_size,
+        shuffle=True,
+        pin_memory=cfg.pin_memory,
+    )
+    test_dataloader = DataLoader(
+        test_data, batch_size=cfg.batch_size, shuffle=True, pin_memory=cfg.pin_memory
+    )
 
     # print(f"hydra.run.dir", hydra.run.dir)
     print(f"Current working directory : {os.getcwd()}")
@@ -127,18 +138,8 @@ def run_single_layer(cfg: DictConfig):
 
 
 def run_network(cfg: DictConfig):
-    mnist_data_path = str(Path(get_original_cwd()) / "data")
-
-    training_data = datasets.MNIST(
-        root=mnist_data_path,
-        train=True,
-        download=True,
-        transform=TransformFlat(),
-    )
-
-    test_data = datasets.MNIST(
-        root=mnist_data_path, train=False, download=True, transform=TransformFlat()
-    )
+    training_data, test_data, num_classes = choose_dataset(cfg=cfg)
+    distance_metric = choose_metric(cfg)
 
     train_dataloader = DataLoader(
         training_data,
@@ -152,12 +153,12 @@ def run_network(cfg: DictConfig):
 
     network = Network(
         dataloader=train_dataloader,
-        num_classes=10,
-        distance_metric=euclidian_distance,
+        num_classes=num_classes,
+        distance_metric=distance_metric,
         device=cfg.device,
         target_accuracy=cfg.target_accuracy,
         max_neighbors=cfg.max_neighbors,
-        max_count=cfg.max_count,
+        # max_count=cfg.max_count,
     )
 
     network.train()
