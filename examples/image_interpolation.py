@@ -14,6 +14,7 @@ from deep_nearest_neighbor.single_image_dataset import (
 from deep_nearest_neighbor.layer import (
     RegressionLayer,
     EuclidianDistance,
+    EuclidianPyramidDistance,
     cosine_distance,
     InfluenceCone,
 )
@@ -52,6 +53,10 @@ def run_single_layer(cfg: DictConfig):
     if cfg.kernel_type == "influence_cone":
         distance_metric = InfluenceCone(
             epsilon=cfg.epsilon, exponent=cfg.exponent, factor=cfg.influence_cone_factor
+        )
+    elif distance_metric == "euclidian_pyramid":
+        EuclidianPyramidDistance(
+            epsilon=cfg.epsilon, exponent=cfg.exponent, scales=cfg.scales
         )
     else:
         distance_metric = (

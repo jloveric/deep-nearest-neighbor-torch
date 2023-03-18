@@ -72,6 +72,36 @@ class InfluenceCone:
         )
 
 
+def euclidian_pyramid_distance(
+    keys: Tensor,
+    values: Tensor,
+    epsilon: float = 1e-3,
+    exponent: float = -4.0,
+    scales: int = 4,
+) -> Tensor:
+    """
+    Compute distances based off of a pyramid, first at full scale, then half
+    then quarter...
+    :param keys: tensor containing all neighbors
+    :param values: tensor containing all samples
+    :param epsilon: factor so the inverse doesn't become infinite
+    :return: inverse distance between keys and values
+    """
+
+    delta = values.unsqueeze(1) - keys
+
+    distances = 0
+    new_delta = delta
+
+    for i in range(scales):
+        distances += torch.pow(
+            (torch.linalg.norm(new_delta, dim=2) + epsilon), exponent
+        )
+        new_delta = new_delta[:, :, ::2]
+
+    return distances / scales
+
+
 def euclidian_distance(
     keys: Tensor, values: Tensor, epsilon: float = 1e-3, exponent: float = -4.0
 ) -> Tensor:
@@ -104,6 +134,22 @@ class EuclidianDistance:
     def __call__(self, keys: Tensor, values: Tensor):
         return euclidian_distance(
             keys=keys, values=values, epsilon=self._epsilon, exponent=self._exponent
+        )
+
+
+class EuclidianPyramidDistance:
+    def __init__(self, epsilon: float = 1e-3, exponent: float = -2, scales: int = 4):
+        self._epsilon = epsilon
+        self._exponent = exponent
+        self._scales = scales
+
+    def __call__(self, keys: Tensor, values: Tensor):
+        return euclidian_pyramid_distance(
+            keys=keys,
+            values=values,
+            epsilon=self._epsilon,
+            exponent=self._exponent,
+            scales=self._scales,
         )
 
 
