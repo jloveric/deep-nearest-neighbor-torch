@@ -51,7 +51,7 @@ def influence_cone(
     min_dist = min_dist.view(-1, 1)
     # print('min_dist', min_dist.shape)
     # print('distance', distance.shape)
-    cone = torch.clamp(-distance + 2.0 * min_dist, min=0)
+    cone = torch.clamp(-distance + factor * min_dist, min=0)
 
     return cone
 
@@ -127,6 +127,40 @@ def euclidian_distance(
     return distance
 
 
+def cosine_distance(
+    keys: Tensor, values: Tensor, epsilon: float = 1e-6, exponent: float = -2.0
+) -> Tensor:
+    """
+    Compute the cosine distance.
+    :param keys: tensor containing all neighbors
+    :param values: tensor containing all samples
+    :param epsilon: factor so the inverse doesn't become infinite
+    :return: inverse distance between keys and values
+    """
+
+    distances = (
+        torch.nn.functional.normalize(values) @ torch.nn.functional.normalize(keys).t()
+    )
+    distances = torch.pow(1 - torch.abs(distances) + epsilon, exponent)
+    return distances
+
+
+def dot_product(
+    keys: Tensor, values: Tensor, epsilon: float = 1e-6, exponent: float = -2.0
+) -> Tensor:
+    """
+    Compute the dot product distance.
+    :param keys: tensor containing all neighbors
+    :param values: tensor containing all samples
+    :param epsilon: factor so the inverse doesn't become infinite
+    :return: inverse distance between keys and values
+    """
+
+    distances = values @ keys.t()
+    distances = torch.pow(1 - torch.abs(distances) + epsilon, exponent)
+    return distances
+
+
 class EuclidianDistance:
     def __init__(self, epsilon: float = 1e-3, exponent: float = -2):
         self._epsilon = epsilon
@@ -154,23 +188,15 @@ class EuclidianPyramidDistance:
         )
 
 
-def cosine_distance(
-    keys: Tensor, values: Tensor, epsilon: float = 1e-6, exponent: float = 2.0
-) -> Tensor:
-    """
-    Compute the inverse distance from each of the neighbors and store that
-    in the returning vector.
-    :param keys: tensor containing all neighbors
-    :param values: tensor containing all samples
-    :param epsilon: factor so the inverse doesn't become infinite
-    :return: inverse distance between keys and values
-    """
+class CosineDistance:
+    def __init__(self, epsilon: float = 1e-3, exponent: float = -2):
+        self._epsilon = epsilon
+        self._exponent = exponent
 
-    distances = (
-        torch.nn.functional.normalize(values) @ torch.nn.functional.normalize(keys).t()
-    )
-    distances = 1 / torch.pow(1 - torch.abs(distances) + epsilon, exponent)
-    return distances
+    def __call__(self, keys: Tensor, values: Tensor):
+        return cosine_distance(
+            keys=keys, values=values, epsilon=self._epsilon, exponent=self._exponent
+        )
 
 
 class CommonMixin:

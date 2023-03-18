@@ -10,6 +10,7 @@ kernel_type: "euclidian_pyramid"
 epsilon: 1e-6
 exponent: -2
 scales: 4
+influence_cone_factor: 2
 
 hydra:
   run:

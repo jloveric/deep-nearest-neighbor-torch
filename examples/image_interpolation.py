@@ -15,7 +15,7 @@ from deep_nearest_neighbor.layer import (
     RegressionLayer,
     EuclidianDistance,
     EuclidianPyramidDistance,
-    cosine_distance,
+    CosineDistance,
     InfluenceCone,
 )
 from deep_nearest_neighbor.networks import Network
@@ -58,6 +58,8 @@ def run_single_layer(cfg: DictConfig):
         EuclidianPyramidDistance(
             epsilon=cfg.epsilon, exponent=cfg.exponent, scales=cfg.scales
         )
+    elif distance_metric == "cosine":
+        CosineDistance(epsilon=cfg.epsilon, exponent=cfg.exponent)
     else:
         distance_metric = (
             EuclidianDistance(epsilon=cfg.epsilon, exponent=cfg.exponent),
