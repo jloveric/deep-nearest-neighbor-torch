@@ -8,6 +8,7 @@ To run
 ```
 python examples/invariant_image_classification.py data=mnist exponent=-4 kernel_type=euclidean
 ```
+```
 100%|█████████████████████████████████████████████████████████████████████████████████████████████████████▉| 937/938 [00:30<00:00, 30.30it/s]
 Epoch_loop time 30.925434758999472
 neighbors.device cuda:0
