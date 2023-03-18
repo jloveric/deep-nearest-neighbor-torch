@@ -9,7 +9,7 @@ import hydra
 from deep_nearest_neighbor.layer import (
     Layer,
     euclidian_distance,
-    cosine_distance,
+    CosineDistance,
     InfluenceCone,
     EuclidianDistance,
     EuclidianPyramidDistance,
@@ -57,6 +57,18 @@ def run_single_layer(cfg: DictConfig):
         test_data = datasets.CIFAR100(
             root=mnist_data_path, train=False, download=True, transform=TransformFlat()
         )
+    elif cfg.data == "cifar10":
+        num_classes = 10
+        training_data = datasets.CIFAR10(
+            root=mnist_data_path,
+            train=True,
+            download=True,
+            transform=TransformFlat(),
+        )
+
+        test_data = datasets.CIFAR10(
+            root=mnist_data_path, train=False, download=True, transform=TransformFlat()
+        )
 
     train_dataloader = DataLoader(
         training_data,
@@ -76,6 +88,8 @@ def run_single_layer(cfg: DictConfig):
         distance_metric = EuclidianPyramidDistance(
             epsilon=cfg.epsilon, exponent=cfg.exponent, scales=cfg.scales
         )
+    elif cfg.kernel_type == "cosine":
+        distance_metric = CosineDistance(epsilon=cfg.epsilon, exponent=cfg.exponent)
     else:
         distance_metric = EuclidianDistance(epsilon=cfg.epsilon, exponent=cfg.exponent)
 
