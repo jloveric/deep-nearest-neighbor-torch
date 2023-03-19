@@ -113,7 +113,9 @@ class Layer(CommonMixin):
         :returns: predicted classification for each sample
         """
 
-        probabilities = torch.zeros(distances.shape[0], self._num_classes)
+        probabilities = torch.zeros(
+            distances.shape[0], self._num_classes, device=self._device
+        )
 
         if style == Predictor.Nearest:
             nearest_neighbor = torch.argmax(distances, dim=1)
@@ -141,23 +143,18 @@ class Layer(CommonMixin):
                 # print("indexes.shape", indexes.shape, i)
                 if indexes.numel() > 0:
                     this_sum = torch.sum(distances[:, indexes], dim=1)
-
-                    predicted_sum = torch.where(
-                        predicted_sum > this_sum, predicted_sum, this_sum
-                    )
-
-                    predicted_classification = torch.where(
-                        predicted_sum > this_sum, predicted_classification, i
-                    )
                     probabilities[:, i] = this_sum
                 else:
                     probabilities[:, i] = 0
 
-                probabilities = probabilities / torch.linalg.norm(
-                    probabilities, ord=1, dim=1
-                ).view(-1, 1)
+            probabilities = probabilities / torch.linalg.norm(
+                probabilities, ord=1, dim=1
+            ).view(-1, 1)
 
-        return predicted_classification, probabilities
+        predictions = torch.argmax(probabilities, dim=1)
+        # print("predictions", predictions)
+        # print("probabilities", probabilities)
+        return predictions, probabilities
 
     def incorrect_predictions(
         self,

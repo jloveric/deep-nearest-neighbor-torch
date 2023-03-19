@@ -35,7 +35,7 @@ class ForwardLoader:
         for layer_index in range(self._layer_index):
             # print("loading layer", layer_index)
             p, x = self._network._layer_list[layer_index](x)
-            print("p.shape", p.shape, "x.shape", x.shape)
+            # print("p.shape", p)
         return x, y
 
 

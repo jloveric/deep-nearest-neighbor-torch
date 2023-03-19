@@ -1,6 +1,5 @@
 import torch
 from torch import Tensor
-from deep_nearest_neighbor.metrics import euclidian_distance
 
 
 def influence_cone(
