@@ -6,7 +6,7 @@ batch_size: 64
 max_neighbors: 100000
 train_network: False
 max_count: 3
-kernel_type: "euclidian_pyramid"
+kernel_type: "cosine"
 epsilon: 1e-6
 exponent: -2
 scales: 4

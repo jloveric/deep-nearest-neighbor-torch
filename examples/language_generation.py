@@ -167,18 +167,25 @@ def run_single_layer(cfg: DictConfig):
             print("test_result", test_result)
 
     else:
-        layer = Layer(
+        # layer = Layer(
+        #    num_classes=128,
+        #    distance_metric=choose_metric(cfg),
+        #    device=cfg.device,
+        #    target_accuracy=cfg.target_accuracy,
+        #    max_neighbors=cfg.max_neighbors,
+        # )
+        network = Network(
             num_classes=128,
-            distance_metric=euclidian_distance,
+            distance_metric=choose_metric(cfg),
             device=cfg.device,
             target_accuracy=cfg.target_accuracy,
             max_neighbors=cfg.max_neighbors,
         )
 
-        layer.load(cfg.directory)
+        network.load(cfg.directory)
 
         result = generate(
-            model=layer, start_text=cfg.text_prompt, length=cfg.text_prediction_length
+            model=network, start_text=cfg.text_prompt, length=cfg.text_prediction_length
         )
         print("result", result)
 

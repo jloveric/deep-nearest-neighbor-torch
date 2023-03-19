@@ -5,6 +5,7 @@ from torch.utils.data import DataLoader
 from torch.utils.data import Dataset
 import os
 from pathlib import Path
+from typing import Optional
 
 
 class ForwardLoader:
@@ -46,9 +47,9 @@ class ForwardLoader:
 class Network:
     def __init__(
         self,
-        dataloader: DataLoader,
         num_classes: int,
-        distance_metric=euclidian_distance,
+        dataloader: Optional[DataLoader] = None,
+        distance_metric=None,
         device: str = "cuda",
         target_accuracy: float = 0.9,
         max_neighbors: int = 1000,
@@ -68,6 +69,10 @@ class Network:
         self._device = device
         self.dataloader = dataloader
         self._max_neighbors = max_neighbors
+
+    @property
+    def num_features(self) -> int:
+        return self._layer_list[0].neighbors.shape[1]
 
     def save(self, directory: str = None):
         if directory is None:
@@ -96,9 +101,12 @@ class Network:
     def forward(self, x: Tensor, to_index: int):
         out = x.to(self._device)
         for layer_index in range(to_index + 1):
-            out = self._layer_list[layer_index](out)
+            p, out = self._layer_list[layer_index](out)
 
         return out
+
+    def __call__(self, x: Tensor):
+        return self.forward(x, len(self._layer_list) - 1)
 
     def predict(
         self,
