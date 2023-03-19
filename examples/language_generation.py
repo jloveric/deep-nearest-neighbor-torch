@@ -98,7 +98,7 @@ def get_dataloaders(cfg: DictConfig):
     return train_dataloader, test_dataloader
 
 
-def run_single_layer(cfg: DictConfig):
+def run_network(cfg: DictConfig):
     if cfg.train is True:
         train_dataloader, test_dataloader = get_dataloaders(cfg)
 
@@ -106,65 +106,35 @@ def run_single_layer(cfg: DictConfig):
         print(f"Current working directory : {os.getcwd()}")
         print(f"Orig working directory    : {get_original_cwd()}")
 
-        if cfg.train_network is False:
-            layer = Layer(
-                num_classes=128,
-                distance_metric=choose_metric(cfg),
-                device=cfg.device,
-                target_accuracy=cfg.target_accuracy,
-                max_neighbors=cfg.max_neighbors,
-            )
+        network = Network(
+            dataloader=train_dataloader,
+            num_classes=128,
+            distance_metric=choose_metric(cfg=cfg),
+            device=cfg.device,
+            target_accuracy=cfg.target_accuracy,
+            max_neighbors=cfg.max_neighbors,
+            num_layers=cfg.num_layers
+            # max_count=cfg.max_count,
+        )
 
-            layer.epoch_loop(
-                dataloader=train_dataloader,
-            )
-            num_neighbors = len(layer.neighbors)
+        network.train()
 
-            layer.save()
+        network.save()
 
-            train_result = layer.test_loop(
-                dataloader=train_dataloader,
-            )
-            print("train_result", train_result)
+        print("")
+        print(network.layer(1).num_neighbors, network.layer(1).num_features)
 
-            test_result = layer.test_loop(
-                dataloader=test_dataloader,
-            )
+        train_result = network.test_loop(
+            dataloader=train_dataloader,
+        )
+        print("")
+        print("train_result", train_result)
 
-            print("test_result", test_result)
-            print("neighbors in model", num_neighbors)
-        else:
-            train_dataloader, test_dataloader = get_dataloaders(cfg)
-
-            network = Network(
-                dataloader=train_dataloader,
-                num_classes=128,
-                distance_metric=choose_metric(cfg=cfg),
-                device=cfg.device,
-                target_accuracy=cfg.target_accuracy,
-                max_neighbors=cfg.max_neighbors,
-                num_layers=cfg.num_layers
-                # max_count=cfg.max_count,
-            )
-
-            network.train()
-
-            network.save()
-
-            print("")
-            print(network.layer(1).num_neighbors, network.layer(1).num_features)
-
-            train_result = network.test_loop(
-                dataloader=train_dataloader,
-            )
-            print("")
-            print("train_result", train_result)
-
-            test_result = network.test_loop(
-                dataloader=test_dataloader,
-            )
-            print("")
-            print("test_result", test_result)
+        test_result = network.test_loop(
+            dataloader=test_dataloader,
+        )
+        print("")
+        print("test_result", test_result)
 
     else:
         # layer = Layer(
@@ -194,8 +164,7 @@ def run_single_layer(cfg: DictConfig):
     config_path="../config", config_name="language_interpolation", version_base="1.3"
 )
 def run(cfg: DictConfig):
-    run_single_layer(cfg=cfg)
-    # run_network(cfg=cfg)
+    run_network(cfg=cfg)
 
 
 if __name__ == "__main__":
