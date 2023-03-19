@@ -6,7 +6,8 @@ import matplotlib.pyplot as plt
 from torch.utils.data import DataLoader
 from omegaconf import DictConfig, OmegaConf
 import hydra
-from deep_nearest_neighbor.layer import Layer, euclidian_distance, cosine_distance
+from deep_nearest_neighbor.layer import Layer
+from deep_nearest_neighbor.metrics import choose_metric
 from deep_nearest_neighbor.networks import Network
 from deep_nearest_neighbor.utils import generate
 import os
@@ -63,66 +64,106 @@ class TextDataset(SingleTextDataset):
         return inputs.float(), self.output[index]
 
 
+def get_dataloaders(cfg: DictConfig):
+    create_gutenberg_cache(parent_directory=hydra.utils.get_original_cwd())
+    training_data = TextDataset(
+        gutenberg_ids=cfg.gutenberg_train,
+        features=cfg.num_features,
+        targets=cfg.num_targets,
+        num_workers=0,
+        transforms=None,
+    )
+
+    test_data = TextDataset(
+        gutenberg_ids=cfg.gutenberg_test,
+        features=cfg.num_features,
+        targets=cfg.num_targets,
+        num_workers=0,
+        transforms=None,
+    )
+
+    train_dataloader = DataLoader(
+        training_data,
+        batch_size=cfg.batch_size,
+        shuffle=True,
+        pin_memory=cfg.pin_memory,
+    )
+    test_dataloader = DataLoader(
+        test_data,
+        batch_size=cfg.batch_size,
+        shuffle=True,
+        pin_memory=cfg.pin_memory,
+    )
+
+    return train_dataloader, test_dataloader
+
+
 def run_single_layer(cfg: DictConfig):
     if cfg.train is True:
-        create_gutenberg_cache(parent_directory=hydra.utils.get_original_cwd())
-        training_data = TextDataset(
-            gutenberg_ids=cfg.gutenberg_train,
-            features=cfg.num_features,
-            targets=cfg.num_targets,
-            num_workers=0,
-            transforms=None,
-        )
+        train_dataloader, test_dataloader = get_dataloaders(cfg)
 
-        test_data = TextDataset(
-            gutenberg_ids=cfg.gutenberg_test,
-            features=cfg.num_features,
-            targets=cfg.num_targets,
-            num_workers=0,
-            transforms=None,
-        )
-
-        train_dataloader = DataLoader(
-            training_data,
-            batch_size=cfg.batch_size,
-            shuffle=True,
-            pin_memory=cfg.pin_memory,
-        )
-        test_dataloader = DataLoader(
-            test_data,
-            batch_size=cfg.batch_size,
-            shuffle=True,
-            pin_memory=cfg.pin_memory,
-        )
         # print(f"hydra.run.dir", hydra.run.dir)
         print(f"Current working directory : {os.getcwd()}")
         print(f"Orig working directory    : {get_original_cwd()}")
-        layer = Layer(
-            num_classes=128,
-            distance_metric=euclidian_distance,
-            device=cfg.device,
-            target_accuracy=cfg.target_accuracy,
-            max_neighbors=cfg.max_neighbors,
-        )
 
-        layer.epoch_loop(
-            dataloader=train_dataloader,
-        )
-        num_neighbors = len(layer.neighbors)
+        if cfg.train_network is False:
+            layer = Layer(
+                num_classes=128,
+                distance_metric=choose_metric(cfg),
+                device=cfg.device,
+                target_accuracy=cfg.target_accuracy,
+                max_neighbors=cfg.max_neighbors,
+            )
 
-        layer.save()
+            layer.epoch_loop(
+                dataloader=train_dataloader,
+            )
+            num_neighbors = len(layer.neighbors)
 
-        train_result = layer.test_loop(
-            dataloader=train_dataloader,
-        )
-        print("train_result", train_result)
+            layer.save()
 
-        test_result = layer.test_loop(
-            dataloader=test_dataloader,
-        )
+            train_result = layer.test_loop(
+                dataloader=train_dataloader,
+            )
+            print("train_result", train_result)
 
-        print("test_result", test_result)
-        print("neighbors in model", num_neighbors)
+            test_result = layer.test_loop(
+                dataloader=test_dataloader,
+            )
+
+            print("test_result", test_result)
+            print("neighbors in model", num_neighbors)
+        else:
+            train_dataloader, test_dataloader = get_dataloaders(cfg)
+
+            network = Network(
+                dataloader=train_dataloader,
+                num_classes=128,
+                distance_metric=choose_metric(cfg=cfg),
+                device=cfg.device,
+                target_accuracy=cfg.target_accuracy,
+                max_neighbors=cfg.max_neighbors,
+                num_layers=cfg.num_layers
+                # max_count=cfg.max_count,
+            )
+
+            network.train()
+
+            print("")
+            print(network.layer(1).num_neighbors, network.layer(1).num_features)
+
+            train_result = network.test_loop(
+                dataloader=train_dataloader,
+            )
+            print("")
+            print("train_result", train_result)
+
+            test_result = network.test_loop(
+                dataloader=test_dataloader,
+            )
+            print("")
+            print("test_result", test_result)
+
     else:
         layer = Layer(
             num_classes=128,

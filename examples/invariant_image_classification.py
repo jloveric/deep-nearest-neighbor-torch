@@ -7,12 +7,7 @@ from torch.utils.data import DataLoader
 from omegaconf import DictConfig, OmegaConf
 import hydra
 from deep_nearest_neighbor.layer import Layer
-from deep_nearest_neighbor.metrics import (
-    CosineDistance,
-    InfluenceCone,
-    EuclidianDistance,
-    EuclidianPyramidDistance,
-)
+from deep_nearest_neighbor.metrics import choose_metric
 from deep_nearest_neighbor.networks import Network
 import os
 from pathlib import Path
@@ -70,23 +65,6 @@ def choose_dataset(cfg: DictConfig):
         )
 
     return training_data, test_data, num_classes
-
-
-def choose_metric(cfg: DictConfig):
-    if cfg.kernel_type == "influence_cone":
-        distance_metric = InfluenceCone(
-            epsilon=cfg.epsilon, exponent=cfg.exponent, factor=cfg.influence_cone_factor
-        )
-    elif cfg.kernel_type == "euclidian_pyramid":
-        distance_metric = EuclidianPyramidDistance(
-            epsilon=cfg.epsilon, exponent=cfg.exponent, scales=cfg.scales
-        )
-    elif cfg.kernel_type == "cosine":
-        distance_metric = CosineDistance(epsilon=cfg.epsilon, exponent=cfg.exponent)
-    else:
-        distance_metric = EuclidianDistance(epsilon=cfg.epsilon, exponent=cfg.exponent)
-
-    return distance_metric
 
 
 def run_single_layer(cfg: DictConfig):

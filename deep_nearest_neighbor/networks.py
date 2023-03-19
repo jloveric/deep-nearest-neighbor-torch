@@ -32,10 +32,12 @@ class ForwardLoader:
         x, y = next(self._loader_iter)
         x = x.to(self._device)
         y = y.to(self._device)
+        # xp = x
         for layer_index in range(self._layer_index):
-            # print("loading layer", layer_index)
-            p, x = self._network._layer_list[layer_index](x)
-            # print("p.shape", p)
+            # xp = x
+            _, x = self._network._layer_list[layer_index](x)
+            # if x.shape == xp.shape:
+            #    x = 0.5 * (x + xp)
         return x, y
 
 

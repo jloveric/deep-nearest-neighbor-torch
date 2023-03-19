@@ -1,6 +1,10 @@
 import torch
 from torch import Tensor
 
+# TODO: Should probably just pass the values and
+# kwargs here instead
+from omegaconf import DictConfig
+
 
 def influence_cone(
     keys: Tensor,
@@ -172,3 +176,20 @@ class CosineDistance:
         return cosine_distance(
             keys=keys, values=values, epsilon=self._epsilon, exponent=self._exponent
         )
+
+
+def choose_metric(cfg: DictConfig):
+    if cfg.kernel_type == "influence_cone":
+        distance_metric = InfluenceCone(
+            epsilon=cfg.epsilon, exponent=cfg.exponent, factor=cfg.influence_cone_factor
+        )
+    elif cfg.kernel_type == "euclidian_pyramid":
+        distance_metric = EuclidianPyramidDistance(
+            epsilon=cfg.epsilon, exponent=cfg.exponent, scales=cfg.scales
+        )
+    elif cfg.kernel_type == "cosine":
+        distance_metric = CosineDistance(epsilon=cfg.epsilon, exponent=cfg.exponent)
+    else:
+        distance_metric = EuclidianDistance(epsilon=cfg.epsilon, exponent=cfg.exponent)
+
+    return distance_metric

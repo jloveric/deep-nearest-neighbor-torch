@@ -3,17 +3,25 @@ device: cuda
 pin_memory: True
 batch_size: 16
 max_neighbors: 400000
+epsilon: 1e-6
+exponent: -4
+
 tolerance: 0.01
 num_features: 10
 num_targets: 1
-gutenberg_train: [10, 11]
+
+gutenberg_train: [11]
 gutenberg_test: [1]
+
+train_network: True
+num_layers: 5
 
 # Related to testing
 train: True
 text_prompt: "Who are you"
 directory: null
 text_prediction_length: 100
+kernel_type: "euclidian"
 
 hydra:
   run:
