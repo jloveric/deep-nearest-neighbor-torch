@@ -84,9 +84,18 @@ python examples/image_interpolation.py tolerance=0.2 target_accuracy=0.8
 # Language generation
 Run
 ```
-python examples/language_generation.py 
+python examples/language_generation.py max_neighbors=10000 num_layers=5
+```
+Improves training score with additional layers, but not test set score.  The test set is a separate book, so not the same distribution other than being the same language. Train results per layer (last layer is final output). Setting max_neighbors for
+each layer is equivalent to setting the maximum width of a layer in a neural network.
+```
+train_result [Results(error=0.6906385748447074, accuracy=0.3093614251552927, incorrect=97619, total=141346), Results(error=0.6465269622062174, accuracy=0.35347303779378264, incorrect=91384, total=141346), Results(error=0.5711162678816522, accuracy=0.4288837321183479, incorrect=80725, total=141346), Results(error=0.5228517255528986, accuracy=0.47714827444710145, incorrect=73903, total=141346), Results(error=0.4728467731665558, accuracy=0.5271532268334441, incorrect=66835, total=141346)]
+```
+with test results per layer (final layer is final output)
+```
+test_result [Results(error=0.8133586979496935, accuracy=0.1866413020503065, incorrect=30784, total=37848), Results(error=0.8160801099133376, accuracy=0.18391989008666243, incorrect=30887, total=37848), Results(error=0.8191185795814838, accuracy=0.18088142041851618, incorrect=31002, total=37848), Results(error=0.8176918199112239, accuracy=0.18230818008877617, incorrect=30948, total=37848), Results(error=0.82287042908476, accuracy=0.1771295709152399, incorrect=31144, total=37848)]
 ```
 testing
 ```
-python examples/language_generation.py train=False directory=/mnt/1000gb/deep-nearest-neighbor-py/outputs/2023-03-12/12-56-39 text_prompt="What is this about"
+python examples/language_generation.py train=False directory=/mnt/1000gb/deep-nearest-neighbor-py/outputs/2023-03-19/09-45-03 text_prompt="What is this about"
 ```

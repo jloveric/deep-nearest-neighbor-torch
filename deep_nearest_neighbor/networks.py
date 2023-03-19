@@ -3,6 +3,8 @@ from torch import Tensor
 from deep_nearest_neighbor.layer import Layer, euclidian_distance, Predictor
 from torch.utils.data import DataLoader
 from torch.utils.data import Dataset
+import os
+from pathlib import Path
 
 
 class ForwardLoader:
@@ -66,6 +68,27 @@ class Network:
         self._device = device
         self.dataloader = dataloader
         self._max_neighbors = max_neighbors
+
+    def save(self, directory: str = None):
+        if directory is None:
+            directory = os.getcwd()
+
+        for index, layer in enumerate(self._layer_list):
+            torch.save(layer.neighbors, str(Path(directory) / f"neighbors_{index}.pt"))
+            torch.save(
+                layer.neighbor_value,
+                str(Path(directory) / f"neighbor_value_{index}.pt"),
+            )
+
+    def load(self, directory: str = None):
+        if directory is None:
+            directory = os.getcwd()
+
+        for index, layer in enumerate(self._layer_list):
+            layer.neighbors = torch.load(str(Path(directory) / f"neighbors_{index}.pt"))
+            layer.neighbor_value = torch.load(
+                str(Path(directory) / f"neighbor_value_{index}.pt")
+            )
 
     def layer(self, i: int) -> Layer:
         return self._layer_list[i]

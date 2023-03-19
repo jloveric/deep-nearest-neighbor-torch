@@ -59,6 +59,14 @@ class CommonMixin:
     def neighbor_value(self) -> Tensor:
         return self._neighbor_value
 
+    @neighbors.setter
+    def neighbors(self, x):
+        self._neighbors = x
+
+    @neighbor_value.setter
+    def neighbor_value(self, x):
+        self._neighbor_value = x
+
     @property
     def num_neighbors(self) -> int:
         return self._neighbors.shape[0]

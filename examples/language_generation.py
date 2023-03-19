@@ -149,6 +149,8 @@ def run_single_layer(cfg: DictConfig):
 
             network.train()
 
+            network.save()
+
             print("")
             print(network.layer(1).num_neighbors, network.layer(1).num_features)
 
