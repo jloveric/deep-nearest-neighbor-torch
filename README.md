@@ -59,8 +59,17 @@ Epoch_loop time 3.532990956911817
 test_result Results(error=0.5865, accuracy=0.4135, incorrect=5865, total=10000)
 neighbors in model 30867
 ```
+# Running with "deep" networks
+So far not seeing an improvement as more layers are added, but it's not a horrible reduction either
+```
+python examples/invariant_image_classification.py data=cifar100 exponent=-4 kernel_type=cosine train_network=True
+```
+Results for each layer on train and test sets.
+```
+train_result [Results(error=0.02628, accuracy=0.97372, incorrect=1314, total=50000), Results(error=0.00886, accuracy=0.99114, incorrect=443, total=50000), Results(error=0.0047, accuracy=0.9953, incorrect=235, total=50000)]
 
-
+test_result [Results(error=0.818, accuracy=0.182, incorrect=8180, total=10000), Results(error=0.8354, accuracy=0.1646, incorrect=8354, total=10000), Results(error=0.8399, accuracy=0.1601, incorrect=8399, total=10000)]
+```
 # Image approximation using weighted neighbor approximation
 The example below is approximately 1/10 data compression of the original image.
 The left image shows the locations of the "centers", the right image shows the

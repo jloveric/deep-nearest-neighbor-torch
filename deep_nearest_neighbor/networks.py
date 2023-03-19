@@ -48,23 +48,20 @@ class Network:
         device: str = "cuda",
         target_accuracy: float = 0.9,
         max_neighbors: int = 1000,
+        num_layers: int = 2,
     ):
-        self.layer1 = Layer(
-            num_classes=num_classes,
-            distance_metric=distance_metric,
-            device=device,
-            target_accuracy=target_accuracy,
-            max_neighbors=max_neighbors,
-        )
-        self.layer2 = Layer(
-            num_classes=num_classes,
-            distance_metric=distance_metric,
-            device=device,
-            target_accuracy=target_accuracy,
-            max_neighbors=max_neighbors,
-        )
+        self._layer_list = []
+        for layer_index in range(num_layers):
+            layer = Layer(
+                num_classes=num_classes,
+                distance_metric=distance_metric,
+                device=device,
+                target_accuracy=target_accuracy,
+                max_neighbors=max_neighbors,
+            )
+            self._layer_list.append(layer)
+
         self._device = device
-        self._layer_list = [self.layer1, self.layer2]
         self.dataloader = dataloader
         self._max_neighbors = max_neighbors
 

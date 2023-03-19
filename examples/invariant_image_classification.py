@@ -157,6 +157,7 @@ def run_network(cfg: DictConfig):
         device=cfg.device,
         target_accuracy=cfg.target_accuracy,
         max_neighbors=cfg.max_neighbors,
+        num_layers=cfg.num_layers
         # max_count=cfg.max_count,
     )
 

@@ -291,6 +291,9 @@ class Layer(CommonMixin):
         t_start = time.perf_counter()
         for count, data in enumerate(pbar := tqdm(data_iter)):
             pbar.set_postfix({"neighbors": len(self._neighbors)})
+            if len(self._neighbors) > self._max_neighbors:
+                break
+
             # print("count", count)
             x, y = data
             x = x.to(self._device)
