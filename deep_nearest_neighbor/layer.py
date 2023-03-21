@@ -93,7 +93,7 @@ class Layer(CommonMixin):
     def __init__(
         self,
         num_classes: int,
-        distance_metric=euclidian_distance,
+        distance_metric=None,
         device: str = "cuda",
         target_accuracy: float = 0.9,
         max_neighbors: int = float("inf"),
@@ -136,15 +136,6 @@ class Layer(CommonMixin):
             # TODO: Figure out how to do this without the for loop
             for i in range(self._num_classes):
                 indexes = (target_value.flatten() == i).nonzero().squeeze()
-                # print("target_value", target_value)
-
-                # TODO: When numel is one 1 I lose a dimension and stuff breaks. Figure out
-                # a better approach here.
-
-                # None of the indexes match
-                # if indexes.numel() == 0:
-                #    continue
-                # print("indexes.shape", indexes.shape, i, indexes)
 
                 if indexes.numel() == 1:
                     indexes = indexes.unsqueeze(0)
@@ -160,8 +151,7 @@ class Layer(CommonMixin):
             ).view(-1, 1)
 
         predictions = torch.argmax(probabilities, dim=1)
-        # print("predictions", predictions)
-        # print("probabilities", probabilities)
+        
         return predictions, probabilities
 
     def incorrect_predictions(
@@ -323,7 +313,7 @@ class Layer(CommonMixin):
 class RegressionLayer(CommonMixin):
     def __init__(
         self,
-        distance_metric=euclidian_distance,
+        distance_metric=None,
         device: str = "cuda",
         target_accuracy: float = 0.9,
         max_neighbors: int = float("inf"),
