@@ -131,7 +131,6 @@ class Layer(CommonMixin):
             probabilities[:, predicted_classification] = 1.0
         elif style == Predictor.Interp:
             predicted_classification = 0
-            predicted_sum = 0
 
             # TODO: Figure out how to do this without the for loop
             for i in range(self._num_classes):
@@ -151,7 +150,7 @@ class Layer(CommonMixin):
             ).view(-1, 1)
 
         predictions = torch.argmax(probabilities, dim=1)
-        
+
         return predictions, probabilities
 
     def incorrect_predictions(
