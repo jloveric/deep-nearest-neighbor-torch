@@ -59,7 +59,7 @@ class CommonMixin:
             start = int(size * i / splits)
             end = int(size * (i + 1) / splits)
             neighbors = self._neighbors[:, start:end]
-            values = self._neighbors_values[:, start:end]
+            values = self._neighbors_values[start:end]
             distances = self._distance_metric(neighbors, x)
 
             p, probabilities = self.predict(distances, target_value=values)
