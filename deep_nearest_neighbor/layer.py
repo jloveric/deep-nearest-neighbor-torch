@@ -51,7 +51,7 @@ class CommonMixin:
         predictions = self.predict(distances, target_value=self._neighbor_value)
         return predictions
 
-    def featurize(self, x: Tensor, splits: int = 1):
+    def featurize(self, x: Tensor, splits: int = 1) -> Tensor:
         size = self._neighbors.shape[1]
 
         probability_list = []
