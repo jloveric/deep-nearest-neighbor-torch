@@ -53,19 +53,21 @@ class CommonMixin:
 
     def featurize(self, x: Tensor, splits: int = 1) -> Tensor:
         size = self._neighbors.shape[1]
-
         probability_list = []
+        distances = self._distance_metric(self._neighbors, x)
+
         for i in range(splits):
             start = int(size * i / splits)
             end = int(size * (i + 1) / splits)
-            neighbors = self._neighbors[:, start:end]
-            values = self._neighbors_values[start:end]
-            distances = self._distance_metric(neighbors, x)
+            # print("x.shape", x.shape, "neighbors.shape", neighbors.shape)
+            these_distances = distances[:, start:end]
+            values = self._neighbor_value[start:end]
 
-            p, probabilities = self.predict(distances, target_value=values)
+            p, probabilities = self.predict(these_distances, target_value=values)
             probability_list.append(probabilities)
 
-        return torch.stack(probability_list, dim=1)
+        result = torch.cat(probability_list, dim=1)
+        return result
 
     @property
     def neighbors(self) -> Tensor:

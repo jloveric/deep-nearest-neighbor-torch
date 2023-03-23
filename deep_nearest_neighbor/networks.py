@@ -22,11 +22,13 @@ class ForwardLoader:
         dataloader: DataLoader,
         layer_index: int,
         device: str = "cuda",
+        splits: int = 1,
     ):
         self._network = network
         self._loader_iter = iter(dataloader)
         self._layer_index = layer_index
         self._device = device
+        self._splits = splits
 
     def __iter__(self):
         return self
@@ -38,7 +40,12 @@ class ForwardLoader:
         # xp = x
         for layer_index in range(self._layer_index):
             # xp = x
-            _, x = self._network._layer_list[layer_index](x)
+            # if layer_index == self._layer_index - 1:
+            #    x = self._network._layer_list[layer_index].featurize(x, splits=1)
+            # else:
+            # print("xin.shape", x.shape)
+            x = self._network._layer_list[layer_index].featurize(x, splits=self._splits)
+            # print("x.shape", x.shape)
             # if x.shape == xp.shape:
             #    x = 0.5 * (x + xp)
         return x, y
@@ -54,6 +61,7 @@ class Network:
         target_accuracy: float = 0.9,
         max_neighbors: int = 1000,
         num_layers: int = 2,
+        splits: int = 1,
     ):
         self._layer_list = []
         for layer_index in range(num_layers):
@@ -69,6 +77,7 @@ class Network:
         self._device = device
         self.dataloader = dataloader
         self._max_neighbors = max_neighbors
+        self._splits = splits
 
     @property
     def num_features(self) -> int:
@@ -100,8 +109,11 @@ class Network:
 
     def forward(self, x: Tensor, to_index: int):
         out = x.to(self._device)
+
         for layer_index in range(to_index + 1):
-            p, out = self._layer_list[layer_index](out)
+            # featurize each internal layer though
+            out = self._layer_list[layer_index].featurize(out, splits=self._splits)
+            print("out.shape", out.shape)
 
         return out
 
@@ -141,6 +153,7 @@ class Network:
                 dataloader=self.dataloader,
                 layer_index=count,
                 device=self._device,
+                splits=self._splits,
             )
             layer.epoch_loop(dataloader=dataloader)
 
@@ -152,6 +165,7 @@ class Network:
                 dataloader=dataloader,
                 layer_index=len(self._layer_list),
                 device=self._device,
+                splits=self._splits,
             )
             layer = self._layer_list[-1]
             result = layer.test_loop(dataloader=forward_loader)
@@ -164,6 +178,7 @@ class Network:
                     dataloader=dataloader,
                     layer_index=count,
                     device=self._device,
+                    splits=self._splits,
                 )
                 result = layer.test_loop(dataloader=forward_loader)
                 results.append(result)
