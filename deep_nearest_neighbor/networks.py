@@ -39,15 +39,7 @@ class ForwardLoader:
         y = y.to(self._device)
         # xp = x
         for layer_index in range(self._layer_index):
-            # xp = x
-            # if layer_index == self._layer_index - 1:
-            #    x = self._network._layer_list[layer_index].featurize(x, splits=1)
-            # else:
-            # print("xin.shape", x.shape)
             x = self._network._layer_list[layer_index].featurize(x, splits=self._splits)
-            # print("x.shape", x.shape)
-            # if x.shape == xp.shape:
-            #    x = 0.5 * (x + xp)
         return x, y
 
 
