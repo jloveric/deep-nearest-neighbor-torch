@@ -142,9 +142,6 @@ def run_network(cfg: DictConfig):
 
     network.train()
 
-    print("")
-    print(network.layer(1).num_neighbors, network.layer(1).num_features)
-
     train_result = network.test_loop(
         dataloader=train_dataloader,
     )
