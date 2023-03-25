@@ -40,6 +40,7 @@ class ForwardLoader:
         # xp = x
         for layer_index in range(self._layer_index):
             x = self._network._layer_list[layer_index].featurize(x, splits=self._splits)
+
         return x, y
 
 
@@ -119,11 +120,13 @@ class Network:
         style: Predictor = Predictor.Interp,
     ) -> Tensor:
         # Predictions depend on the distances from the last layer.
-        return self._layer_list[-1].predict(
+        predictions, probabilities = self._layer_list[-1].predict(
             distances=distances,
             target_classification=target_classification,
             style=style,
         )
+
+        return predictions, probabilities
 
     def incorrect_predictions(
         self,
@@ -155,7 +158,9 @@ class Network:
             forward_loader = ForwardLoader(
                 network=self,
                 dataloader=dataloader,
-                layer_index=len(self._layer_list),
+                # We want the input before the last as the last is used
+                # for computing the final error
+                layer_index=len(self._layer_list) - 1,
                 device=self._device,
                 splits=self._splits,
             )
