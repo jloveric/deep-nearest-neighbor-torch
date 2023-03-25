@@ -67,6 +67,7 @@ class CommonMixin:
             probability_list.append(probabilities)
 
         result = torch.cat(probability_list, dim=1)
+        #print('result.shape', result.shape)
         return result
 
     @property
