@@ -160,6 +160,7 @@ class Network:
                 splits=self._splits,
             )
             layer = self._layer_list[-1]
+            print("layer.size", layer.num_neighbors, layer.num_features)
             result = layer.test_loop(dataloader=forward_loader)
             results.append(result)
         else:

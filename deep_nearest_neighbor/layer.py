@@ -67,7 +67,7 @@ class CommonMixin:
             probability_list.append(probabilities)
 
         result = torch.cat(probability_list, dim=1)
-        #print('result.shape', result.shape)
+        # print('result.shape', result.shape)
         return result
 
     @property
@@ -250,6 +250,7 @@ class Layer(CommonMixin):
         Return the number of elements that are wrong in samples
         """
 
+        # print("neighbors.shape", neighbors.shape, "sampels.shpe", samples.shape)
         distances = self._distance_metric(keys=neighbors, values=samples)
 
         wrong_indices = self.incorrect_predictions(
@@ -269,7 +270,7 @@ class Layer(CommonMixin):
             x, y = data
             x = x.to(self._device)
             y = y.flatten().to(self._device)
-
+            # print("x.shape", x.shape, "y.shape", y.shape)
             datapoints += len(x)
             wrong += self.test_wrong(
                 neighbors=self._neighbors,
