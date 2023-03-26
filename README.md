@@ -1,3 +1,5 @@
+![Build Status](https://github.com/jloveric/deep-nearest-neighbor-py/actions/workflows/python-app.yml/badge.svg)
+
 # Dynamic and Deep Nearest Neighbors in Pytorch
 How far can nearest neighbors go? Experiments to see
 
