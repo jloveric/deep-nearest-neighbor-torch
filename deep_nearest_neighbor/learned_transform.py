@@ -7,6 +7,15 @@ import torch
 
 
 class DeepNearestNeighborLayer(LightningModule):
+    """
+    Learn the transform that leads to the best nearest neighbor
+    approximation where the approximation metric is
+    a distance metric such as euclidean or cosine with
+    some sort of inverse distance weighting.  
+    After the transform has been computed, it can be used
+    to generate "neighbors" to which the distance metric
+    is applied.
+    """
     def __init__(self, in_features: int, out_features: int):
         super().__init__()
         self.l1 = nn.Linear(in_features, out_features)
