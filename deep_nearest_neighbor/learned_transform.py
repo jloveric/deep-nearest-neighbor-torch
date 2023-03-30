@@ -11,11 +11,12 @@ class DeepNearestNeighborLayer(LightningModule):
     Learn the transform that leads to the best nearest neighbor
     approximation where the approximation metric is
     a distance metric such as euclidean or cosine with
-    some sort of inverse distance weighting.  
+    some sort of inverse distance weighting.
     After the transform has been computed, it can be used
     to generate "neighbors" to which the distance metric
     is applied.
     """
+
     def __init__(self, in_features: int, out_features: int):
         super().__init__()
         self.l1 = nn.Linear(in_features, out_features)
@@ -51,6 +52,31 @@ class DeepNearestNeighborLayer(LightningModule):
 
         loss = F.cross_entropy(ans_a, ya) + F.cross_entropy(ans_b, yb)
         return loss
+
+    def predict(
+        self, distances: torch.Tensor, target_value: torch.Tensor
+    ) -> torch.Tensor:
+        probabilities = torch.zeros(
+            distances.shape[0], self._num_classes, device=self._device
+        )
+
+        for i in range(self._num_classes):
+            indexes = (target_value.flatten() == i).nonzero().squeeze()
+
+            if indexes.numel() == 1:
+                indexes = indexes.unsqueeze(0)
+            # print("indexes.shape", indexes.shape, i)
+            if indexes.numel() > 0:
+                this_sum = torch.sum(distances[:, indexes], dim=1)
+                probabilities[:, i] = this_sum
+            else:
+                probabilities[:, i] = 0
+
+        probabilities = probabilities / torch.linalg.norm(
+            probabilities, ord=1, dim=1
+        ).view(-1, 1)
+
+        return probabilities
 
     def configure_optimizers(self):
         return torch.optim.Adam(self.parameters(), lr=0.02)
