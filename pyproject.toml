@@ -16,6 +16,7 @@ pillow = "^9.4.0"
 language-interpolation = {git = "https://github.com/jloveric/language-interpolation.git"}
 torch = "^2.0.0"
 torchvision = "^0.15.1"
+pytorch-lightning = "^2.0.0"
 
 [tool.poetry.dev-dependencies]
 
