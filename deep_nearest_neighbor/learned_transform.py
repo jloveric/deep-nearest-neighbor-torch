@@ -17,7 +17,13 @@ class DeepNearestNeighborLayer(LightningModule):
     is applied.
     """
 
-    def __init__(self, in_features: int, out_features: int):
+    def __init__(
+        self,
+        in_features: int,
+        out_features: int,
+        num_classes: int,
+        device: str = "cuda",
+    ):
         super().__init__()
         self.l1 = nn.Linear(in_features, out_features)
         self._centers = torch.tensor([])
@@ -25,6 +31,8 @@ class DeepNearestNeighborLayer(LightningModule):
         self._transformed_centers = torch.tensor([])
         self._transformed_values = torch.tensor([])
         self._distance_metric = CosineDistance(epsilon=1e-2, exponent=-2)
+        self._num_classes = num_classes
+        self._device = device
 
     def forward(self, x):
         return torch.relu(self.l1(x.view(x.size(0), -1)))
@@ -50,7 +58,10 @@ class DeepNearestNeighborLayer(LightningModule):
         ans_a = self._distance_metric(keys=txa, values=txb)
         ans_b = self._distance_metric(keys=txb, values=txa)
 
-        loss = F.cross_entropy(ans_a, ya) + F.cross_entropy(ans_b, yb)
+        probabilities_a = self.predict(distances=ans_a, target_value=ya)
+        probabilities_b = self.predict(distances=ans_b, target_value=yb)
+
+        loss = F.cross_entropy(probabilities_a, ya) + F.cross_entropy(probabilities_b, yb)
         return loss
 
     def predict(
