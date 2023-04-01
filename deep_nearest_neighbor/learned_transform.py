@@ -4,6 +4,7 @@ from deep_nearest_neighbor.metrics import CosineDistance
 import torch.nn as nn
 import torch.nn.functional as F
 import torch
+from typing import Any
 
 
 class DeepNearestNeighborLayer(LightningModule):
@@ -19,13 +20,14 @@ class DeepNearestNeighborLayer(LightningModule):
 
     def __init__(
         self,
+        transform_network: Any,
         in_features: int,
         out_features: int,
         num_classes: int,
         device: str = "cuda",
     ):
         super().__init__()
-        self.l1 = nn.Linear(in_features, out_features)
+        self.transform_network = transform_network
         self._centers = torch.tensor([])
         self._values = torch.tensor([])
         self._transformed_centers = torch.tensor([])
@@ -38,10 +40,10 @@ class DeepNearestNeighborLayer(LightningModule):
         return torch.relu(self.l1(x.view(x.size(0), -1)))
 
     def add_keys(self, x):
-        keys = self.l1(x)
+        keys = self.transform_network(x)
 
     def training_step(self, batch, batch_idx):
-        print("batch", batch[0])
+        # print("batch", batch[0])
         x, y = batch[0]
 
         size = x.shape[0] // 2
@@ -50,8 +52,8 @@ class DeepNearestNeighborLayer(LightningModule):
         ya = y[:size, ...]
         yb = y[size:, ...]
 
-        txa = self.l1(xa)
-        txb = self.l1(xb)
+        txa = self.transform_network(xa)
+        txb = self.transform_network(xb)
 
         # calculate the nearest neighbors a->b and b->a. We
         # reverse the role of keys and values to get the most
@@ -65,6 +67,10 @@ class DeepNearestNeighborLayer(LightningModule):
         loss = F.cross_entropy(probabilities_a, ya) + F.cross_entropy(
             probabilities_b, yb
         )
+
+        # print("loss.shape", loss.item())
+        self.log(f"loss", loss.item(), prog_bar=True)
+
         return loss
 
     def predict(

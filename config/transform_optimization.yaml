@@ -13,8 +13,36 @@ scales: 4
 influence_cone_factor: 2
 num_layers: 3
 
+out_features: 128
+
 max_epochs: 10
 gpus: 1
+
+mlp:
+  nonlinearity: null
+  layer_type: "continuous"
+  n: 2
+  n_in: null
+  n_out: null
+  n_hidden: null
+  resnet: False
+  # We don't need this if we use max_abs normalization (it seems)
+  periodicity: null #2.0
+
+  rescale_output: False
+  scale: 2.0
+  normalize: False # maxabs # False, maxabs, midrange, instance
+  segments: 2
+  input:
+    segments: ${mlp.segments}
+    width: 784
+  output:
+    segments: ${mlp.segments}
+    width: 128
+  hidden:
+    segments: ${mlp.segments}
+    layers: 4
+    width: 20
 
 # featurize be splitting the neighbors
 # into "splits" sets so the feature output

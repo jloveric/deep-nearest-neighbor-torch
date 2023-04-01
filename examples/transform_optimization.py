@@ -9,10 +9,12 @@ import os
 from pytorch_lightning import Trainer
 from pytorch_lightning.callbacks import LearningRateMonitor
 from pytorch_lightning.callbacks.model_checkpoint import ModelCheckpoint
+import torch.nn as nn
+from high_order_layers_torch.networks import HighOrderMLP, LowOrderMLP
 
 
 def run_single_layer(cfg: DictConfig):
-    checkpoint_callback = ModelCheckpoint(filename="{epoch:03d}", monitor="train_loss")
+    checkpoint_callback = ModelCheckpoint(filename="{epoch:03d}", monitor="loss")
 
     training_data, test_data, num_classes = choose_dataset(cfg=cfg)
     distance_metric = choose_metric(cfg)
@@ -36,8 +38,26 @@ def run_single_layer(cfg: DictConfig):
         callbacks=[checkpoint_callback],
     )
 
+    # transform_network = nn.Linear(784, cfg.out_features)
+
+    transform_network = HighOrderMLP(
+        layer_type=cfg.mlp.layer_type,
+        n=cfg.mlp.n,
+        in_width=cfg.mlp.input.width,
+        out_width=cfg.mlp.output.width,
+        hidden_width=cfg.mlp.hidden.width,
+        hidden_layers=cfg.mlp.hidden.layers,
+        in_segments=cfg.mlp.input.segments,
+        out_segments=cfg.mlp.output.segments,
+        hidden_segments=cfg.mlp.hidden.segments,
+    )
+
     model = DeepNearestNeighborLayer(
-        in_features=784, out_features=32, num_classes=num_classes, device=cfg.device
+        transform_network=transform_network,
+        in_features=784,
+        out_features=cfg.out_features,
+        num_classes=num_classes,
+        device=cfg.device,
     )
     trainer.fit(model, train_dataloaders=[train_dataloader])
     print("testing")
