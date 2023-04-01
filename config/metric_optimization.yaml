@@ -13,6 +13,9 @@ scales: 4
 influence_cone_factor: 2
 num_layers: 3
 
+max_epochs: 10
+gpus: 1
+
 # featurize be splitting the neighbors
 # into "splits" sets so the feature output
 # is splits*num_classes instead of num_classes
