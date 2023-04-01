@@ -1,0 +1,25 @@
+data: cifar100 #mnist
+target_accuracy: 0.90
+device: cuda
+pin_memory: True
+batch_size: 64
+max_neighbors: 100000
+train_network: False
+max_count: 3
+kernel_type: "cosine"
+epsilon: 1e-6
+exponent: -2
+scales: 4
+influence_cone_factor: 2
+num_layers: 3
+
+# featurize be splitting the neighbors
+# into "splits" sets so the feature output
+# is splits*num_classes instead of num_classes
+splits: 4
+
+hydra:
+  run:
+    dir: ./outputs/${now:%Y-%m-%d}/${now:%H-%M-%S}
+  job:
+    chdir: True
