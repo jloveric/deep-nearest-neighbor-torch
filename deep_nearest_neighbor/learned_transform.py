@@ -41,9 +41,10 @@ class DeepNearestNeighborLayer(LightningModule):
         keys = self.l1(x)
 
     def training_step(self, batch, batch_idx):
-        x, y = batch
+        print("batch", batch[0])
+        x, y = batch[0]
 
-        size = x.shape[0]
+        size = x.shape[0] // 2
         xa = x[:size, ...]
         xb = x[size:, ...]
         ya = y[:size, ...]
@@ -61,7 +62,9 @@ class DeepNearestNeighborLayer(LightningModule):
         probabilities_a = self.predict(distances=ans_a, target_value=ya)
         probabilities_b = self.predict(distances=ans_b, target_value=yb)
 
-        loss = F.cross_entropy(probabilities_a, ya) + F.cross_entropy(probabilities_b, yb)
+        loss = F.cross_entropy(probabilities_a, ya) + F.cross_entropy(
+            probabilities_b, yb
+        )
         return loss
 
     def predict(

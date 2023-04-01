@@ -30,7 +30,6 @@ def run_single_layer(cfg: DictConfig):
     # print(f"hydra.run.dir", hydra.run.dir)
     print(f"Current working directory : {os.getcwd()}")
     # print(f"Orig working directory    : {get_original_cwd()}")
-    
 
     trainer = Trainer(
         max_epochs=cfg.max_epochs,
@@ -40,7 +39,7 @@ def run_single_layer(cfg: DictConfig):
     model = DeepNearestNeighborLayer(
         in_features=784, out_features=32, num_classes=num_classes, device=cfg.device
     )
-    trainer.fit(model)
+    trainer.fit(model, train_dataloaders=[train_dataloader])
     print("testing")
     # trainer.test(model)
 
@@ -50,7 +49,7 @@ def run_single_layer(cfg: DictConfig):
 
 @hydra.main(
     config_path="../config",
-    config_name="metric_optimization",
+    config_name="transform_optimization",
     version_base="1.3",
 )
 def run(cfg: DictConfig):
