@@ -11,6 +11,7 @@ from pytorch_lightning.callbacks import LearningRateMonitor
 from pytorch_lightning.callbacks.model_checkpoint import ModelCheckpoint
 import torch.nn as nn
 from high_order_layers_torch.networks import HighOrderMLP, LowOrderMLP
+import torch
 
 
 def run_single_layer(cfg: DictConfig):
@@ -38,23 +39,30 @@ def run_single_layer(cfg: DictConfig):
         callbacks=[checkpoint_callback],
     )
 
-    # transform_network = nn.Linear(784, cfg.out_features)
-
-    transform_network = HighOrderMLP(
-        layer_type=cfg.mlp.layer_type,
-        n=cfg.mlp.n,
-        in_width=cfg.mlp.input.width,
-        out_width=cfg.mlp.output.width,
-        hidden_width=cfg.mlp.hidden.width,
-        hidden_layers=cfg.mlp.hidden.layers,
-        in_segments=cfg.mlp.input.segments,
-        out_segments=cfg.mlp.output.segments,
-        hidden_segments=cfg.mlp.hidden.segments,
-    )
+    if cfg.mlp.style == "low-order":
+        transform_network = LowOrderMLP(
+            in_width=cfg.mlp.input.width,
+            out_width=cfg.mlp.output.width,
+            hidden_layers=cfg.mlp.hidden.layers,
+            hidden_width=cfg.mlp.hidden.width,
+            non_linearity=torch.nn.ReLU(),
+        )
+    elif cfg.mlp.style == "high-order":
+        transform_network = HighOrderMLP(
+            layer_type=cfg.mlp.layer_type,
+            n=cfg.mlp.n,
+            in_width=cfg.mlp.input.width,
+            out_width=cfg.mlp.output.width,
+            hidden_width=cfg.mlp.hidden.width,
+            hidden_layers=cfg.mlp.hidden.layers,
+            in_segments=cfg.mlp.input.segments,
+            out_segments=cfg.mlp.output.segments,
+            hidden_segments=cfg.mlp.hidden.segments,
+        )
 
     model = DeepNearestNeighborLayer(
         transform_network=transform_network,
-        in_features=784,
+        in_features=cfg.in_features,
         out_features=cfg.out_features,
         num_classes=num_classes,
         device=cfg.device,

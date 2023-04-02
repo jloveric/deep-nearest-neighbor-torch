@@ -13,12 +13,14 @@ scales: 4
 influence_cone_factor: 2
 num_layers: 3
 
+in_features: 784
 out_features: 128
 
-max_epochs: 10
+max_epochs: 100
 gpus: 1
 
 mlp:
+  style: high-order # low-order (standard relu network)
   nonlinearity: null
   layer_type: "continuous"
   n: 2
@@ -35,7 +37,7 @@ mlp:
   segments: 2
   input:
     segments: ${mlp.segments}
-    width: 784
+    width: ${in_features}
   output:
     segments: ${mlp.segments}
     width: 128

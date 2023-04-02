@@ -101,3 +101,9 @@ testing
 ```
 python examples/language_generation.py train=False directory=/mnt/1000gb/deep-nearest-neighbor-py/outputs/2023-03-19/09-45-03 text_prompt="What is this about"
 ```
+
+# Messing with a learned transform
+Trying to optimize a transform for the original data.
+```
+python examples/transform_optimization.py out_features=784 mlp.n=3 mlp.hidden.layers=1 batch_size=64 mlp.style=low-order
+```

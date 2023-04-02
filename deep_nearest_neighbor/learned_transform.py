@@ -32,7 +32,7 @@ class DeepNearestNeighborLayer(LightningModule):
         self._values = torch.tensor([])
         self._transformed_centers = torch.tensor([])
         self._transformed_values = torch.tensor([])
-        self._distance_metric = CosineDistance(epsilon=1e-2, exponent=-2)
+        self._distance_metric = CosineDistance(epsilon=1e-2, exponent=-1)
         self._num_classes = num_classes
         self._device = device
 
@@ -64,9 +64,19 @@ class DeepNearestNeighborLayer(LightningModule):
         probabilities_a = self.predict(distances=ans_a, target_value=ya)
         probabilities_b = self.predict(distances=ans_b, target_value=yb)
 
-        loss = F.cross_entropy(probabilities_a, ya) + F.cross_entropy(
-            probabilities_b, yb
-        )
+        score_a = 0.0 * ya  # torch.zeros_like(ya, requires_grad=True)
+        score_b = 0.0 * yb  # torch.zeros_like(yb, requires_grad=True)
+        for i in range(score_a.shape[0]):
+            score_a[i] = 1.0 - probabilities_a[i, ya[i]]
+            score_b[i] = 1.0 - probabilities_b[i, yb[i]]
+
+        # print("score_a", score_a, probabilities_a.shape, ya.shape)
+        # print("score_a.shape", score_a.shape, score_b.shape)
+        loss = torch.sum(score_a) + torch.sum(score_b)
+
+        # loss = F.cross_entropy(probabilities_a, ya) + F.cross_entropy(
+        #    probabilities_b, yb
+        # )
 
         # print("loss.shape", loss.item())
         self.log(f"loss", loss.item(), prog_bar=True)
@@ -99,4 +109,4 @@ class DeepNearestNeighborLayer(LightningModule):
         return probabilities
 
     def configure_optimizers(self):
-        return torch.optim.Adam(self.parameters(), lr=0.02)
+        return torch.optim.Adam(self.parameters(), lr=0.1)
