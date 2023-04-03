@@ -40,7 +40,7 @@ mlp:
     width: ${in_features}
   output:
     segments: ${mlp.segments}
-    width: 128
+    width: ${out_features}
   hidden:
     segments: ${mlp.segments}
     layers: 4

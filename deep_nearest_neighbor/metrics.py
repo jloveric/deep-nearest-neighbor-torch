@@ -121,6 +121,9 @@ def cosine_distance(
         torch.nn.functional.normalize(values) @ torch.nn.functional.normalize(keys).t()
     )
     distances = torch.pow(1 - torch.abs(distances) + epsilon, exponent)
+    # distances = torch.exp(-torch.pow(torch.abs(distances) / 0.1, 1))
+    # distances = torch.nan_to_num(distances, nan=0.0)
+
     return distances
 
 

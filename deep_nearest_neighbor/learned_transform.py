@@ -32,7 +32,7 @@ class DeepNearestNeighborLayer(LightningModule):
         self._values = torch.tensor([])
         self._transformed_centers = torch.tensor([])
         self._transformed_values = torch.tensor([])
-        self._distance_metric = CosineDistance(epsilon=1e-2, exponent=-1)
+        self._distance_metric = CosineDistance(epsilon=1e-2, exponent=-4)
         self._num_classes = num_classes
         self._device = device
 
@@ -52,8 +52,8 @@ class DeepNearestNeighborLayer(LightningModule):
         ya = y[:size, ...]
         yb = y[size:, ...]
 
-        txa = self.transform_network(xa)
-        txb = self.transform_network(xb)
+        txa = xa + self.transform_network(xa)
+        txb = xb + self.transform_network(xb)
 
         # calculate the nearest neighbors a->b and b->a. We
         # reverse the role of keys and values to get the most
@@ -71,8 +71,10 @@ class DeepNearestNeighborLayer(LightningModule):
             score_b[i] = 1.0 - probabilities_b[i, yb[i]]
 
         # print("score_a", score_a, probabilities_a.shape, ya.shape)
-        # print("score_a.shape", score_a.shape, score_b.shape)
-        loss = torch.sum(score_a) + torch.sum(score_b)
+        # print("score_a.shape", score_a, score_b)
+        loss = (torch.sum(score_a) + torch.sum(score_b)) / (
+            score_a.shape[0] + score_b.shape[0]
+        )
 
         # loss = F.cross_entropy(probabilities_a, ya) + F.cross_entropy(
         #    probabilities_b, yb
@@ -109,4 +111,4 @@ class DeepNearestNeighborLayer(LightningModule):
         return probabilities
 
     def configure_optimizers(self):
-        return torch.optim.Adam(self.parameters(), lr=0.1)
+        return torch.optim.Adam(self.parameters(), lr=1.0e-3)
