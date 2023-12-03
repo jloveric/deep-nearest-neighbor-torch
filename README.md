@@ -107,3 +107,7 @@ Trying to optimize a transform for the original data.
 ```
 python examples/transform_optimization.py out_features=784 mlp.n=3 mlp.hidden.layers=1 batch_size=64 mlp.style=low-order
 ```
+
+# Notes
+Where will I take this in the future, maybe something like deep kernel methods
+[A theory of representation learning gives a deep generalisation of kernel methods](https://arxiv.org/pdf/2108.13097.pdf)
